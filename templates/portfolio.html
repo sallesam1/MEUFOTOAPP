@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Portfolio{% endblock %}
+{% block content %}
+<div class="page-header">
+<h1>Portfolio</h1>
+<p>Antes e depois - com links de entrega para clientes</p>
+</div>
+{% if not public %}
+<div class="card">
+<h3>Adicionar Item</h3>
+<form method="POST" enctype="multipart/form-data" action="{{ url_for('portfolio') }}">
+<input type="text" name="title" placeholder="Titulo do trabalho" required>
+<label>Foto Antes</label>
+<input type="file" name="before" accept="image/*">
+<label>Foto Depois</label>
+<input type="file" name="after" accept="image/*">
+<button type="submit" class="btn btn-primary">Adicionar</button>
+</form>
+</div>
+{% endif %}
+<div class="grid">
+{% for item in items %}
+<div class="card">
+<h3>{{ item.title }}</h3>
+{% if not public %}
+<div style="background:#e8f5e9;padding:12px;border-radius:8px;margin-bottom:12px;border:1px solid #a5d6a7;">
+<p style="font-size:13px;color:#2e7d32;margin:0 0 6px 0;"><strong>LINK DE ENTREGA:</strong></p>
+<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+<a href="http://localhost:5000/p/{{ item.share_token }}" style="font-size:13px;color:#4a90d9;word-break:break-all;flex:1;">http://localhost:5000/p/{{ item.share_token }}</a>
+<button onclick="copyLink('http://localhost:5000/p/{{ item.share_token }}',this)" class="btn btn-primary" style="padding:4px 10px;font-size:12px;flex-shrink:0;">Copiar</button>
+</div>
+</div>
+{% endif %}
+<div style="display:flex;gap:8px;flex-wrap:wrap;">
+{% if item.before_path %}
+<div>
+<p style="font-size:12px;color:#888;margin-bottom:4px;">ANTES</p>
+<img src="{{ url_for('serve_wm', filename=item.before_path) }}" style="width:200px;border-radius:8px;cursor:pointer;" onclick="openLightbox(this.src)">
+</div>
+{% endif %}
+{% if item.after_path %}
+<div>
+<p style="font-size:12px;color:#888;margin-bottom:4px;">DEPOIS</p>
+<img src="{{ url_for('serve_wm', filename=item.after_path) }}" style="width:200px;border-radius:8px;cursor:pointer;" onclick="openLightbox(this.src)">
+</div>
+{% endif %}
+</div>
+{% if not public %}
+<form method="POST" action="{{ url_for('delete_portfolio', iid=item.id) }}" style="margin-top:8px;">
+<button type="submit" class="btn btn-danger">Excluir</button>
+</form>
+{% endif %}
+</div>
+{% endfor %}
+</div>
+{% if not items %}
+<p style="text-align:center;color:#888;margin-top:24px;">Nenhum item no portfolio.</p>
+{% endif %}
+{% endblock %}

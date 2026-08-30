@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="page-header">
+<h1>Dashboard</h1>
+<p>Bem-vindo, {{ current_user.name or current_user.studio_name or current_user.email }}!</p>
+</div>
+{% if trial_days_left is defined and trial_days_left is not none and trial_days_left > 0 and not current_user.is_admin %}
+<div class="card" style="background:#fff3cd;border:1px solid #ffeaa7;">
+<p>Trial: <strong>{{ trial_days_left }} dia(s)</strong> restante(s). <a href="{{ url_for('planos') }}">Fazer upgrade</a></p>
+</div>
+{% endif %}
+<div class="stats-grid">
+<div class="stat-card"><h3>{{ galerias|length }}</h3><p>Galerias</p></div>
+<div class="stat-card"><h3>{{ total_fotos }}</h3><p>Fotos</p></div>
+<div class="stat-card"><h3>{{ total_selecoes }}</h3><p>Selecoes</p></div>
+<div class="stat-card"><h3>{{ current_user.plan|upper }}</h3><p>Plano</p></div>
+</div>
+<div class="card">
+<h3>Galerias Recentes</h3>
+{% if galerias %}
+<table>
+<tr><th>Titulo</th><th>Cliente</th><th>Criada</th><th>Acao</th></tr>
+{% for g in galerias %}
+<tr>
+<td>{{ g.title }}</td>
+<td>{{ g.client_name or '-' }}</td>
+<td>{{ g.created_at.strftime('%d/%m/%Y') }}</td>
+<td><a href="{{ url_for('galeria', gid=g.id) }}" class="btn btn-primary" style="padding:4px 10px;font-size:12px;">Abrir</a></td>
+</tr>
+{% endfor %}
+</table>
+{% else %}
+<p style="color:#888;">Nenhuma galeria. <a href="{{ url_for('nova_galeria') }}">Criar agora</a></p>
+{% endif %}
+</div>
+{% endblock %}
+

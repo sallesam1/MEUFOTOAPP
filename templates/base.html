@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}{{ site_settings.app_name if site_settings else 'MeuFotoApp' }}{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<style>
+.btn,.btn-primary,.btn-danger,.btn-secondary{
+display:inline-flex!important;align-items:center!important;justify-content:center!important;
+padding:0.6rem 1.2rem!important;border-radius:8px!important;font-weight:600!important;
+cursor:pointer!important;border:1px solid transparent!important;transition:0.2s!important;
+gap:8px!important;width:auto!important;text-decoration:none!important;
+}
+.btn-primary{background:#238636!important;color:#fff!important}
+.btn-danger{background:#da3633!important;color:#fff!important}
+.btn-secondary{background:#21262d!important;color:#e6edf3!important;border-color:#30363d!important}
+</style>
+</head>
+<body>
+<div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+{% if current_user.is_authenticated %}
+<div class="sidebar">
+<h2>{{ site_settings.app_name if site_settings else 'MeuFotoApp' }}</h2>
+<a href="{{ url_for('dashboard') }}">Dashboard</a>
+<a href="{{ url_for('list_galerias') }}">Galerias</a>
+<a href="{{ url_for('nova_galeria') }}">+ Nova Galeria</a>
+<a href="{{ url_for('selecoes') }}">Selecoes</a>
+<a href="{{ url_for('portfolio') }}">Portfolio</a>
+<a href="{{ url_for('catalogo_poses') }}">Catalogo de Poses</a>
+{% if current_user.is_admin %}<a href="{{ url_for('admin') }}">Admin</a>{% endif %}
+<a href="{{ url_for('marca') }}">Marca d Agua</a>
+<a href="{{ url_for('planos') }}">Planos</a>
+<a href="{{ url_for('configuracoes') }}">Configuracoes</a>
+{% if current_user.is_admin %}
+<a href="{{ url_for('admin') }}" style="background:#353b48;color:#fff;">ADMIN</a>
+{% endif %}
+<a href="{{ url_for('logout') }}" class="logout">Sair</a>
+</div>
+<div class="main-content">
+{% else %}
+<div style="max-width:380px;margin:16px auto;">
+{% endif %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+<div class="flash {{ category }}">{{ message }}</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+{% block content %}{% endblock %}
+{% if current_user.is_authenticated %}
+</div>
+{% else %}
+</div>
+{% endif %}
+<div id="lightbox" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:9999;align-items:center;justify-content:center;" onclick="this.style.display='none'">
+<img id="lightbox-img" style="max-width:90%;max-height:90%;" src="">
+</div>
+<script src="/static/js/mobile-fix.js"></script>
+</body>
+</html>

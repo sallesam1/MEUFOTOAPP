@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ item.title }} - Portfolio</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div style="max-width:800px;margin:0 auto;padding:28px;">
+<div class="page-header">
+<h1>{{ item.title }}</h1>
+<p>Antes e depois</p>
+</div>
+<div class="card">
+<div style="display:flex;gap:16px;flex-wrap:wrap;">
+{% if item.before_path %}
+<div>
+<p style="font-size:14px;color:#888;margin-bottom:6px;"><strong>ANTES</strong></p>
+<img src="{{ url_for('serve_wm', filename=item.before_path) }}" style="width:350px;border-radius:8px;cursor:pointer;" onclick="openLightbox(this.src)">
+</div>
+{% endif %}
+{% if item.after_path %}
+<div>
+<p style="font-size:14px;color:#888;margin-bottom:6px;"><strong>DEPOIS</strong></p>
+<img src="{{ url_for('serve_wm', filename=item.after_path) }}" style="width:350px;border-radius:8px;cursor:pointer;" onclick="openLightbox(this.src)">
+</div>
+{% endif %}
+</div>
+</div>
+<p style="text-align:center;color:#999;font-size:13px;margin-top:20px;">Fotos protegidas com marca d'agua</p>
+</div>
+</body>
+</html>

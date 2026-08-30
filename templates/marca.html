@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Marca d Agua{% endblock %}
+{% block content %}
+<div class="page-header">
+<h1>Marca d Agua</h1>
+<p>Estilo Upfotos - repetido na diagonal, bem espacado, sem poluir</p>
+</div>
+<div style="display:flex;gap:20px;flex-wrap:wrap;">
+<div class="card" style="flex:1;min-width:280px;">
+<form method="POST" enctype="multipart/form-data" action="{{ url_for('marca') }}" id="wm-form">
+<div class="form-group">
+<label class="form-label">Texto da marca dagua</label>
+<input type="text" name="text" id="wm-text" class="form-control" value="{{ wm.text if wm else '' }}" placeholder="Seu nome ou estudio" oninput="updatePreview()">
+</div>
+<div class="form-group">
+<label class="form-label">Cor</label>
+<input type="color" name="color" id="wm-color" value="{{ wm.color if wm else '#ffffff' }}" oninput="updatePreview()" style="width:60px;height:36px;border:1px solid #ddd;border-radius:6px;cursor:pointer;">
+</div>
+<div class="form-group">
+<label class="form-label">Opacidade: <span id="opacity-val">{{ wm.opacity if wm else 30 }}%</span></label>
+<input type="range" name="opacity" id="wm-opacity" value="{{ wm.opacity if wm else 30 }}" min="5" max="80" oninput="updatePreview()" style="width:100%;">
+</div>
+<div class="form-group">
+<label class="form-label">Posicao</label>
+<select name="position" id="wm-position" class="form-control" onchange="updatePreview()">
+<option value="diagonal" {{ 'selected' if wm and wm.position == 'diagonal' else '' }}>Diagonal (repetido)</option>
+<option value="center" {{ 'selected' if wm and wm.position == 'center' else '' }}>Centro</option>
+</select>
+</div>
+<div class="form-group">
+<label class="form-label">Contorno</label>
+<input type="checkbox" name="stroke" id="wm-stroke" {{ 'checked' if wm and wm.stroke else '' }} onchange="updatePreview()" style="width:20px;height:20px;cursor:pointer;">
+</div>
+<div class="form-group">
+<label class="form-label">Logo (opcional)</label>
+<input type="file" name="logo" accept="image/*" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:8px;">
+</div>
+<hr style="border:none;border-top:1px solid #eee;margin:16px 0;">
+<div class="form-group">
+<label class="form-label">Carregar foto de teste</label>
+<input type="file" id="preview-img" accept="image/*" onchange="loadPreviewImage(this)" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:8px;">
+</div>
+<button type="submit" class="btn btn-primary">Salvar</button>
+</form>
+</div>
+<div class="card" style="flex:1;min-width:280px;">
+<h3>Pre-visualizacao</h3>
+<canvas id="preview-canvas" width="500" height="375" style="width:100%;border-radius:8px;background:#555;"></canvas>
+<p style="color:#777;font-size:12px;margin-top:8px;">Texto menor e bem espacado - protege sem poluir a foto.</p>
+</div>
+</div>
+<script>
+var previewImage=null;
+function loadPreviewImage(input){if(input.files&&input.files[0]){var r=new FileReader();r.onload=function(e){var i=new Image();i.onload=function(){previewImage=i;updatePreview()};i.src=e.target.result};r.readAsDataURL(input.files[0])}}
+function updatePreview(){
+var c=document.getElementById('preview-canvas');var x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);
+if(previewImage){var r=Math.max(c.width/previewImage.width,c.height/previewImage.height);var w=previewImage.width*r;var h=previewImage.height*r;x.drawImage(previewImage,(c.width-w)/2,(c.height-h)/2,w,h)}
+else{var g=x.createLinearGradient(0,0,c.width,c.height);g.addColorStop(0,'#666');g.addColorStop(1,'#555');x.fillStyle=g;x.fillRect(0,0,c.width,c.height)}
+var text=document.getElementById('wm-text').value||'MeuFotoApp';var color=document.getElementById('wm-color').value;var opacity=document.getElementById('wm-opacity').value/100;var position=document.getElementById('wm-position').value;var stroke=document.getElementById('wm-stroke').checked;
+document.getElementById('opacity-val').textContent=document.getElementById('wm-opacity').value+'%';
+var fs=14;x.font=fs+'px Arial';x.globalAlpha=opacity;
+if(position==='diagonal'){
+x.save();x.translate(c.width/2,c.height/2);x.rotate(-Math.PI/4);
+var tw=x.measureText(text).width;var spx=tw+150;var spy=fs+30;
+for(var y=-c.height;y<c.height*2;y+=spy){for(var xx=-c.width;xx<c.width*2;xx+=spx){
+if(stroke){x.strokeStyle='rgba(0,0,0,'+opacity+')';x.lineWidth=1;x.strokeText(text,xx,y)}
+x.fillStyle=color;x.fillText(text,xx,y)}}
+x.restore()}else{
+var fs2=30;x.font='bold '+fs2+'px Arial';var tw=x.measureText(text).width;
+if(stroke){x.strokeStyle='rgba(0,0,0,'+opacity+')';x.lineWidth=2;x.strokeText(text,(c.width-tw)/2,c.height/2)}
+x.fillStyle=color;x.fillText(text,(c.width-tw)/2,c.height/2)}
+x.globalAlpha=1}
+updatePreview();
+</script>
+{% endblock %}

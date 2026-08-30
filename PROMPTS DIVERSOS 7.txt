@@ -1,0 +1,80 @@
+Poder e Presença
+
+prompt 1
+
+Ultra-realistic photo, 8K resolution, studio-quality professional portrait of a person in a clean, minimalist indoor setting with a smooth neutral gray background. The subject is positioned in a classic head-and-shoulders composition, facing directly toward the camera with a confident, composed posture. One hand is gently resting beneath the chin in a thoughtful, elegant pose, with naturally relaxed fingers and realistic skin texture on the visible hand. The subject is wearing a tailored off-white blazer with a deep V-shaped lapel, featuring structured shoulders, premium fabric texture, subtle stitching details, soft natural folds, and high-end fashion styling. Small, elegant stud earrings are visible as understated accessories.
+
+**IMPORTANT:** Facial features accurately matched from the provided reference image. Hairstyle, hair texture, hair length, and hair color accurately matched from the provided reference image. Body type, physical build, proportions, height appearance, skeletal structure, and overall physique accurately matched from the provided reference image. Do not reinterpret or redesign these attributes; reproduce them faithfully from the attached reference image.
+
+Professional beauty portrait photography with soft diffused key lighting positioned slightly above and in front of the subject, balanced fill lighting to minimize harsh shadows, subtle rim lighting to create gentle separation from the background, smooth tonal transitions, natural skin rendering, realistic light falloff, soft catchlights in the eyes, and premium studio lighting quality.
+
+Camera positioned at eye level with a straight-on perspective, centered framing, vertical portrait orientation, shallow depth of field with a softly blurred neutral background, high subject separation, natural perspective compression consistent with an 85mm full-frame portrait lens at approximately f/2.8, extremely sharp focus on the eyes and visible hand.
+
+Photorealistic fabric rendering with realistic weave patterns, natural wrinkles, precise seam definition, premium tailoring details, authentic material response to light, lifelike skin texture, realistic pores, subtle natural imperfections, fine hand details, physically accurate shadows, balanced color grading, true-to-life contrast, cinematic dynamic range, realistic texture and material fidelity, ultra-high image clarity, premium editorial portrait quality, professional commercial photography, natural color reproduction, flawless optical sharpness, and extremely high photorealism.
+
+
+
+prompt 2
+
+Ultra-realistic photo, 8K resolution, full-body professional executive portrait in a minimalist indoor office environment with a smooth light-gray wall serving as the primary background. A subtle shelving unit with a few neatly arranged books is partially visible along the left side of the frame, adding a refined corporate atmosphere without distracting from the subject. The subject is seated on a modern office chair featuring a black upholstered seat and backrest with warm wood accents and a polished chrome pedestal base.
+
+The subject is seated upright with a confident, elegant posture, legs naturally crossed at the ankles, both hands gently resting together on the upper knee with relaxed fingers in a composed professional pose. The body language conveys confidence, sophistication, and executive presence.
+
+The subject is dressed in a tailored off-white pantsuit consisting of a structured blazer with wide lapels and a deep V-neck opening over a matching inner garment that remains mostly concealed. The blazer features premium tailoring, defined shoulders, precise seam construction, subtle natural fabric folds, and luxurious woven textile texture. Matching off-white tailored trousers extend to the ankles with clean, elegant lines and realistic fabric draping. Nude pointed-toe high heels with a smooth matte leather finish are visible beneath the trousers. Small, elegant stud earrings are worn as subtle accessories.
+
+**IMPORTANT:** Facial features accurately matched from the provided reference image. Hairstyle, hair texture, hair length, and hair color accurately matched from the provided reference image. Body type, physical build, proportions, height appearance, skeletal structure, and overall physique accurately matched from the provided reference image. Do not reinterpret, stylize, or redesign these characteristics; reproduce them faithfully and exclusively from the attached reference image.
+
+Professional editorial portrait photography with soft diffused studio key lighting positioned slightly above and in front of the subject, balanced fill lighting to soften shadows, subtle rim lighting creating gentle separation from the background, realistic ambient bounce light, smooth tonal gradients, soft natural highlights, physically accurate shadow transitions, premium commercial lighting setup, and realistic catchlights.
+
+Camera positioned approximately at seated eye level with a slightly elevated but nearly straight-on perspective, vertical composition, medium-full body framing, centered subject placement with balanced negative space, shallow depth of field producing a softly blurred background while maintaining crisp detail on the subject, optical characteristics consistent with an 85mm full-frame portrait lens at approximately f/4 for professional editorial portraiture.
+
+Extremely realistic rendering of premium fabrics, authentic textile weave, subtle stitching, natural garment tension, realistic wrinkles formed by the seated pose, lifelike skin texture on the visible hands, natural pores, subtle skin imperfections, realistic fingernails, physically accurate reflections on chrome surfaces, realistic wood grain on the chair, matte wall texture, true-to-life color science, cinematic dynamic range, flawless exposure balance, ultra-high detail, premium executive branding photography, magazine-quality portrait, exceptional texture and material realism, natural imperfections, crystal-clear optical sharpness, and extreme photorealism.
+
+
+
+prompt 3
+
+Ultra-realistic photo, 8K resolution, professional editorial portrait captured in a minimalist indoor studio environment with a smooth neutral gray background. The composition is a medium portrait framed from approximately the waist upward, centered and facing directly toward the camera. The subject is standing with an elegant, confident posture while holding an open brown leather notebook with both hands at chest level. One hand supports the notebook from below while the other lightly steadies it, with the index finger gently resting beneath the chin in a thoughtful, contemplative gesture. The visible hands display natural relaxed positioning with realistic skin texture and anatomically accurate proportions.
+
+The subject is dressed in a premium tailored off-white blazer featuring structured shoulders, sharp lapels, a deep V-shaped neckline, refined stitching, subtle seam definition, luxurious woven fabric texture, and realistic natural folds formed by the standing pose. Small elegant gold stud earrings are worn as understated accessories. The notebook is constructed from rich brown genuine leather with a matte finish, visible natural grain, stitched edges, slightly rounded corners, realistic thickness, and cream-colored pages with subtle paper texture and natural page curvature.
+
+**IMPORTANT:** Facial features accurately matched from the provided reference image. Hairstyle, hair texture, hair length, and hair color accurately matched from the provided reference image. Body type, physical build, proportions, height appearance, skeletal structure, and overall physique accurately matched from the provided reference image. Do not reinterpret, stylize, redesign, or invent these characteristics; reproduce them faithfully and exclusively from the attached reference image.
+
+Professional beauty and corporate editorial photography using soft diffused studio key lighting positioned slightly above and in front of the subject, balanced fill lighting to preserve soft shadows, subtle rim lighting for separation from the background, gentle ambient bounce light, realistic highlight transitions, physically accurate shadow gradients, premium commercial studio illumination, natural catchlights, and smooth tonal rendering.
+
+Camera positioned at eye level with a straight-on perspective, centered vertical composition, medium portrait framing, shallow depth of field producing a softly blurred background while maintaining razor-sharp focus on the subject, optical characteristics consistent with an 85mm full-frame portrait lens at approximately f/2.8, delivering flattering perspective compression and exceptional subject isolation.
+
+Photorealistic rendering with lifelike fabric weave, authentic garment construction, natural wrinkles and tension lines, realistic leather grain on the notebook cover, detailed paper texture, physically accurate light interaction with all materials, lifelike skin texture on the visible hands, natural pores, subtle skin imperfections, realistic fingernails, premium color science, true-to-life white balance, cinematic dynamic range, flawless exposure, exceptional optical sharpness, editorial magazine-quality finish, luxury executive portrait aesthetic, ultra-high texture and material realism, natural imperfections, and extreme photorealism.
+
+
+
+prompt 4
+
+Ultra-realistic photo, 8K resolution, professional studio portrait captured in a minimalist indoor environment with a smooth neutral gray seamless background. The composition is a medium portrait framed from approximately the waist upward in a vertical orientation. The subject is centered in the frame, standing upright with a strong, confident, and composed posture. Both arms are crossed naturally across the chest, with relaxed shoulders and realistic hand placement. The visible hands display anatomically accurate proportions, natural finger positioning, realistic skin texture, subtle veins, and lifelike fingernails.
+
+The subject is dressed in a premium tailored off-white blazer featuring structured shoulders, wide peaked lapels, a deep V-shaped neckline, refined seam construction, elegant tailoring, premium woven fabric, subtle natural folds, realistic tension lines around the crossed arms, crisp sleeve structure, and luxurious textile texture. Small elegant gold stud earrings are worn as understated accessories. No additional visible accessories are present, emphasizing a clean, sophisticated executive aesthetic.
+
+**IMPORTANT:** Facial features accurately matched from the provided reference image. Hairstyle, hair texture, hair length, and hair color accurately matched from the provided reference image. Body type, physical build, proportions, height appearance, skeletal structure, and overall physique accurately matched from the provided reference image. Do not reinterpret, stylize, redesign, or invent these characteristics; reproduce them faithfully and exclusively from the attached reference image.
+
+Professional editorial portrait photography with soft diffused studio key lighting positioned slightly above and directly in front of the subject, balanced fill lighting to maintain gentle shadow detail, subtle rim lighting creating natural separation from the background, realistic ambient bounce light, smooth highlight roll-off, physically accurate shadow transitions, premium commercial studio lighting setup, natural catchlights, and evenly distributed illumination for flawless skin and fabric rendering.
+
+Camera positioned at eye level with a straight-on perspective, centered framing, vertical portrait orientation, shallow depth of field producing a softly blurred neutral background while maintaining exceptional sharpness on the subject, optical characteristics consistent with an 85mm full-frame portrait lens at approximately f/2.8, delivering flattering perspective compression, natural proportions, and excellent subject isolation.
+
+Photorealistic rendering with ultra-detailed premium fabric weave, realistic stitching, authentic garment construction, natural wrinkles created by the crossed-arm pose, physically accurate material response to light, lifelike skin texture on the visible hands, realistic pores, subtle natural imperfections, fine nail details, true-to-life color science, balanced white balance, cinematic dynamic range, flawless exposure, premium editorial magazine-quality finish, luxury corporate branding photography, exceptional texture and material realism, crystal-clear optical sharpness, and extreme photorealism.
+
+
+
+prompt 5
+Ultra-realistic photo, 8K resolution, professional editorial portrait captured in a minimalist indoor studio environment with a smooth neutral gray seamless background. The composition is a medium portrait framed from approximately the waist upward in a vertical orientation. The subject is seated while leaning slightly forward toward the camera, creating a warm, approachable, and engaging executive presence. Both forearms rest naturally together, with the hands gently clasped in front of the body. Fingers are naturally interlaced with relaxed positioning, displaying anatomically accurate proportions, realistic skin texture, subtle veins, lifelike fingernails, and natural hand posture.
+
+The subject is dressed in a premium tailored off-white blazer featuring structured shoulders, refined lapels, elegant seam construction, luxurious woven fabric texture, subtle natural folds, realistic garment tension, and precise tailoring. Underneath the blazer, a simple black crew-neck top is visible, creating a clean and sophisticated contrast. Small elegant gold stud earrings are worn as understated accessories. Dark tailored trousers are partially visible in the lower portion of the composition, exhibiting realistic fabric draping and natural folds created by the seated posture.
+
+**IMPORTANT:** Facial features accurately matched from the provided reference image. Hairstyle, hair texture, hair length, and hair color accurately matched from the provided reference image. Body type, physical build, proportions, height appearance, skeletal structure, and overall physique accurately matched from the provided reference image. Do not reinterpret, stylize, redesign, or invent these characteristics; reproduce them faithfully and exclusively from the attached reference image.
+
+The facial expression should accurately preserve the expression shown in the reference image, including a natural, genuine smile with slightly visible teeth, while maintaining full fidelity to the facial features from the provided reference image.
+
+Professional beauty and corporate editorial photography with soft diffused studio key lighting positioned slightly above and in front of the subject, balanced fill lighting to soften shadows, subtle rim lighting creating gentle separation from the background, realistic ambient bounce light, physically accurate shadow transitions, soft highlight roll-off, natural catchlights, and premium commercial studio lighting quality.
+
+Camera positioned at eye level with a straight-on perspective, centered composition, vertical portrait orientation, shallow depth of field producing a softly blurred neutral gray background while maintaining razor-sharp focus on the subject, optical characteristics consistent with an 85mm full-frame portrait lens at approximately f/2.8, providing flattering perspective compression and exceptional subject isolation.
+
+Photorealistic rendering with ultra-detailed premium fabric weave, authentic stitching, realistic garment construction, natural wrinkles created by the seated pose, physically accurate material interaction with light, lifelike skin texture on the visible hands, realistic pores, subtle natural skin imperfections, fine fingernail detail, premium color science, balanced white balance, cinematic dynamic range, flawless exposure, exceptional optical sharpness, luxury executive branding photography, magazine-quality editorial portrait, superior texture and material realism, natural imperfections, and extreme photorealism.

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Admin - MeuFotoApp</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f4f6f8;color:#333}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:220px;background:#1a1a2e;padding:20px 0;overflow-y:auto}
+.sidebar .brand{padding:0 20px 20px;font-size:20px;font-weight:700;color:#fff;border-bottom:1px solid #30363d;margin-bottom:15px}
+.sidebar a{display:block;padding:10px 20px;color:#8b949e;text-decoration:none;font-size:14px;transition:0.2s}
+.sidebar a:hover{background:#21262d;color:#fff}
+.sidebar a.active{background:#238636;color:#fff}
+.main{margin-left:220px;padding:30px}
+.main h1{font-size:24px;margin-bottom:6px}
+.main .subtitle{color:#666;font-size:14px;margin-bottom:20px}
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:15px;margin-bottom:25px}
+.stat-card{background:#fff;border-radius:10px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.08)}
+.stat-card .num{font-size:28px;font-weight:700;color:#1a1a2e}
+.stat-card .label{font-size:11px;color:#666;text-transform:uppercase;margin-top:4px}
+.info-box{background:#fff;border-radius:10px;padding:20px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,0.08)}
+.info-box h3{font-size:16px;margin-bottom:10px}
+.info-box p{color:#666;font-size:13px;line-height:1.8}
+.info-box a{color:#238636;text-decoration:none;font-weight:600}
+.table-container{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08)}
+.search-bar{padding:15px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.search-bar input{padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:13px;width:250px}
+table{width:100%;border-collapse:collapse}
+th{background:#f8f9fa;padding:12px;text-align:left;font-size:11px;text-transform:uppercase;color:#666;border-bottom:2px solid #eee}
+td{padding:12px;border-bottom:1px solid #eee;font-size:13px}
+tr:hover{background:#f8f9fa}
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600}
+.badge.active{background:#d4edda;color:#155724}
+.badge.inactive{background:#f8d7da;color:#721c24}
+.plan-select{padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px}
+.btn-sm{padding:4px 10px;border:none;border-radius:4px;font-size:12px;cursor:pointer;font-weight:600}
+.btn-save{background:#238636;color:#fff}
+.btn-save:hover{background:#2ea043}
+.btn-block{background:#da3633;color:#fff}
+.btn-block:hover{background:#f85149}
+.btn-unblock{background:#238636;color:#fff}
+.empty{text-align:center;padding:40px;color:#999}
+@media(max-width:768px){.sidebar{display:none}.main{margin-left:0}.search-bar input{width:100%}}
+</style>
+</head>
+<body>
+<div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="sidebar">
+<div class="brand">MeuFotoApp</div>
+<a href="/dashboard">Dashboard</a>
+<a href="/galerias">Galerias</a>
+<a href="/selecoes">Selecoes</a>
+<a href="/portfolio">Portfolio</a>
+<a href="/catalogo-poses">Catalogo de Poses</a>
+<a href="/admin" class="active">Admin</a>
+<a href="/marca">Marca d Agua</a>
+<a href="/planos">Planos</a>
+<a href="/configuracoes">Configuracoes</a>
+<a href="/logout">Sair</a>
+</div>
+<div class="main">
+<h1>Painel Administrativo</h1>
+<p class="subtitle">Gerencie assinantes, planos e acesso</p>
+
+<div class="stats">
+<div class="stat-card"><div class="num">{{ stats.total if stats else 0 }}</div><div class="label">Total Usuarios</div></div>
+<div class="stat-card"><div class="num">{{ stats.active if stats else 0 }}</div><div class="label">Ativos</div></div>
+<div class="stat-card"><div class="num">{{ stats.inactive if stats else 0 }}</div><div class="label">Bloqueados</div></div>
+<div class="stat-card"><div class="num">{{ stats.free if stats else 0 }}</div><div class="label">Plano Free</div></div>
+<div class="stat-card"><div class="num">{{ stats.pro if stats else 0 }}</div><div class="label">Plano Pro</div></div>
+<div class="stat-card"><div class="num">{{ stats.premium if stats else 0 }}</div><div class="label">Plano Premium</div></div>
+</div>
+
+<div class="info-box">
+<h3>Como gerenciar assinantes</h3>
+<p>
+<strong>1. Novos assinantes:</strong> Eles se cadastram pela pagina de registro do app. Aparecem aqui automaticamente.<br>
+<strong>2. Mudar plano:</strong> Use o dropdown na coluna "Plano" e clique em "Salvar".<br>
+<strong>3. Bloquear/Desbloquear:</strong> Clique no botao na coluna "Acoes".<br>
+<strong>4. Configurar planos:</strong> Defina precos e limites na pagina <a href="/planos">Planos</a>.
+</p>
+</div>
+
+<div class="table-container">
+<div class="search-bar">
+<input type="text" placeholder="Buscar usuario..." onkeyup="filterTable(this)">
+<span style="color:#666;font-size:13px;">{{ users|length if users else 0 }} usuarios</span>
+</div>
+<table id="userTable">
+<thead>
+<tr>
+<th>Usuario</th>
+<th>Estudio</th>
+<th>E-mail</th>
+<th>Plano</th>
+<th>Status</th>
+<th>Cadastro</th>
+<th>Acoes</th>
+</tr>
+</thead>
+<tbody>
+{% if users %}
+{% for user in users %}
+<tr>
+<td>{{ user.username or user.name or user.email }}</td>
+<td>{{ user.studio_name or user.studio or '-' }}</td>
+<td>{{ user.email or '-' }}</td>
+<td>
+<form method="POST" action="/admin/usuario/{{ user.id }}/plano" style="display:flex;gap:4px;align-items:center;">
+<select name="plan" class="plan-select">
+<option value="FREE" {{ 'selected' if (user.plan if user.plan else 'FREE') == 'FREE' else '' }}>FREE</option>
+<option value="PRO" {{ 'selected' if user.plan == 'PRO' else '' }}>PRO</option>
+<option value="PREMIUM" {{ 'selected' if user.plan == 'PREMIUM' else '' }}>PREMIUM</option>
+</select>
+<button type="submit" class="btn-sm btn-save">Salvar</button>
+</form>
+</td>
+<td>
+{% if user.is_active %}
+<span class="badge active">ATIVO</span>
+{% else %}
+<span class="badge inactive">BLOQUEADO</span>
+{% endif %}
+</td>
+<td>{{ user.created_at.strftime('%d/%m/%Y') if user.created_at else '-' }}</td>
+<td>
+<form method="POST" action="/admin/usuario/{{ user.id }}/bloquear" style="display:inline;">
+{% if user.is_active %}
+<button type="submit" class="btn-sm btn-block" onclick="return confirm('Bloquear este usuario?')">Bloquear</button>
+{% else %}
+<button type="submit" class="btn-sm btn-unblock">Desbloquear</button>
+{% endif %}
+</form>
+</td>
+</tr>
+{% endfor %}
+{% else %}
+<tr><td colspan="7" style="text-align:center;padding:40px;color:#999;">Nenhum usuario cadastrado.</td></tr>
+{% endif %}
+</tbody>
+</table>
+</div>
+</div>
+
+<script>
+function filterTable(input) {
+  var filter = input.value.toLowerCase();
+  var rows = document.querySelectorAll('#userTable tbody tr');
+  rows.forEach(function(row) {
+    var text = row.textContent.toLowerCase();
+    row.style.display = text.includes(filter) ? '' : 'none';
+  });
+}
+</script>
+
+<script src="/static/js/mobile-fix.js"></script>
+</body>
+</html>

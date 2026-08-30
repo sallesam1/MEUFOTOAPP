@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ galeria.title }} - MeuFotoApp</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f4f6f8;color:#333}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:220px;background:#1a1a2e;padding:20px 0;overflow-y:auto}
+.sidebar .brand{padding:0 20px 20px;font-size:20px;font-weight:700;color:#fff;border-bottom:1px solid #30363d;margin-bottom:15px}
+.sidebar a{display:block;padding:10px 20px;color:#8b949e;text-decoration:none;font-size:14px;transition:0.2s}
+.sidebar a:hover{background:#21262d;color:#fff}
+.sidebar a.active{background:#238636;color:#fff}
+.main{margin-left:220px;padding:30px}
+.main h1{font-size:24px;margin-bottom:6px}
+.main .subtitle{color:#666;font-size:14px;margin-bottom:20px}
+.card-section{background:#fff;border-radius:10px;padding:20px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,0.08)}
+.card-section h2{font-size:16px;margin-bottom:15px}
+.upload-form{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.upload-form input[type=file]{padding:8px}
+.btn{background:#238636;color:#fff;border:none;padding:8px 16px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer}
+.btn:hover{background:#2ea043}
+.btn-blue{background:#2563eb}
+.btn-blue:hover{background:#1d4ed8}
+.btn-red{background:#da3633}
+.btn-red:hover{background:#f85149}
+.btn-sm{padding:4px 10px;font-size:12px}
+table{width:100%;border-collapse:collapse}
+th{background:#f8f9fa;padding:10px;text-align:left;font-size:11px;text-transform:uppercase;color:#666;border-bottom:2px solid #eee}
+td{padding:10px;border-bottom:1px solid #eee;font-size:13px}
+tr:hover{background:#f8f9fa}
+.photos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:15px;margin-top:15px}
+.photo-card{background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08)}
+.photo-card img{width:100%;height:200px;object-fit:cover;display:block}
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600}
+.badge.received{background:#d4edda;color:#155724}
+.share-box{background:#f0f4f8;border:1px solid #d0d7de;border-radius:8px;padding:12px;margin-bottom:15px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.share-box input{flex:1;min-width:200px;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:13px;background:#fff}
+.empty{text-align:center;padding:30px;color:#999}
+@media(max-width:768px){.sidebar{display:none}.main{margin-left:0}}
+</style>
+</head>
+<body>
+<div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="sidebar">
+<div class="brand">MeuFotoApp</div>
+<a href="/dashboard">Dashboard</a>
+<a href="/galerias">Galerias</a>
+<a href="/selecoes">Selecoes</a>
+<a href="/portfolio">Portfolio</a>
+<a href="/catalogo-poses">Catalogo de Poses</a>
+<a href="/admin">Admin</a>
+<a href="/marca">Marca d Agua</a>
+<a href="/planos">Planos</a>
+<a href="/configuracoes">Configuracoes</a>
+<a href="/logout">Sair</a>
+</div>
+<div class="main">
+<h1>{{ galeria.title }}</h1>
+<p class="subtitle">Gerencie as fotos e selecoes desta galeria</p>
+
+<div class="share-box">
+<input type="text" value="{{ request.host_url }}g/{{ galeria.share_token }}" id="shareLink" readonly>
+<button class="btn btn-blue btn-sm" onclick="copyLink()">Copiar Link</button>
+<a href="/g/{{ galeria.share_token }}" target="_blank" class="btn btn-sm" style="background:#30363d;color:#fff;text-decoration:none;padding:6px 12px;border-radius:6px;font-size:12px;">Abrir Galeria Publica</a>
+</div>
+
+<div class="card-section">
+<h2>Enviar Fotos</h2>
+<form class="upload-form" method="POST" action="/galeria/{{ galeria.id }}" enctype="multipart/form-data">
+<input type="file" name="photos" multiple accept="image/*">
+<button type="submit" class="btn">Enviar</button>
+</form>
+</div>
+
+<div class="card-section">
+<h2>Selecoes Recebidas ({{ selections|length }})</h2>
+{% if selections %}
+<table>
+<thead>
+<tr>
+<th>Data</th>
+<th>Pacote</th>
+<th>Status</th>
+<th>Acoes</th>
+</tr>
+</thead>
+<tbody>
+{% for sel in selections %}
+<tr>
+<td>{{ sel.created_at.strftime('%d/%m/%Y %H:%M') if sel.created_at else '-' }}</td>
+<td>{{ sel.package_key or '-' }}</td>
+<td><span class="badge received">{{ sel.status or 'received' }}</span></td>
+<td style="white-space:nowrap;">
+<a href="/selecoes/{{ sel.id }}/download" class="btn btn-blue btn-sm" style="text-decoration:none;">Baixar ZIP</a>
+<form method="POST" action="/selecao/{{ sel.id }}/deletar" style="display:inline;" onsubmit="return confirm('Deletar esta selecao?')">
+<button type="submit" class="btn btn-red btn-sm">Excluir</button>
+</form>
+</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% else %}
+<div class="empty">Nenhuma selecao recebida ainda.</div>
+{% endif %}
+</div>
+
+<div class="card-section">
+<h2>Fotos ({{ photos|length }})</h2>
+{% if photos %}
+<div class="photos-grid">
+{% for photo in photos %}
+<div class="photo-card">
+<img src="/uploads/{{ photo.filepath }}" alt="Foto">
+</div>
+{% endfor %}
+</div>
+{% else %}
+<div class="empty">Nenhuma foto enviada ainda.</div>
+{% endif %}
+</div>
+</div>
+
+<script>
+function copyLink() {
+    var input = document.getElementById('shareLink');
+    input.select();
+    document.execCommand('copy');
+    alert('Link copiado!');
+}
+</script>
+
+<script src="/static/js/mobile-fix.js"></script>
+</body>
+</html>

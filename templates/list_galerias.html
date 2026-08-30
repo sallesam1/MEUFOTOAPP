@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Galerias{% endblock %}
+{% block content %}
+<div class="page-header">
+<h1>Galerias</h1>
+<p>Todas as suas galerias</p>
+</div>
+<div class="card">
+{% if galerias %}
+<table>
+<tr><th>Titulo</th><th>Cliente</th><th>Categoria</th><th>Criada</th><th>Acoes</th></tr>
+{% for g in galerias %}
+<tr>
+<td>{{ g.title }}</td>
+<td>{{ g.client_name or '-' }}</td>
+<td>{{ g.category or '-' }}</td>
+<td>{{ g.created_at.strftime('%d/%m/%Y') }}</td>
+<td>
+<a href="{{ url_for('galeria', gid=g.id) }}" class="btn btn-primary" style="padding:4px 10px;font-size:12px;">Abrir</a>
+<form method="POST" action="{{ url_for('delete_galeria', gid=g.id) }}" style="display:inline;">
+<button type="submit" class="btn btn-danger" onclick="return confirm('Excluir?')">Excluir</button>
+</form>
+</td>
+</tr>
+{% endfor %}
+</table>
+{% else %}
+<p style="color:#888;text-align:center;">Nenhuma galeria. <a href="{{ url_for('nova_galeria') }}">Criar agora</a></p>
+{% endif %}
+</div>
+{% endblock %}

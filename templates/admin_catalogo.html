@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}Admin - Catalogo{% endblock %}
+{% block content %}
+<div class="page-header">
+<h1>Catalogo de Poses - Admin</h1>
+<p>Cadastre fotos, cole prompts dos seus .txt ou extraia com IA</p>
+</div>
+
+<div class="card">
+<h3>OpenAI API Key</h3>
+<p style="font-size:13px;color:#666;">Necessario para extrair prompts com IA. Obtenha em platform.openai.com</p>
+<form method="POST" action="{{ url_for('admin_apikey') }}" style="display:flex;gap:8px;flex-wrap:wrap;">
+<input type="text" name="openai_api_key" value="{{ settings.openai_api_key if settings else '' }}" placeholder="sk-..." style="flex:1;min-width:200px;padding:8px;border:1px solid #ddd;border-radius:6px;">
+<button type="submit" class="btn btn-primary">Salvar Key</button>
+</form>
+</div>
+
+<div class="card">
+<h3>Adicionar Foto ao Catalogo</h3>
+<form method="POST" enctype="multipart/form-data" action="{{ url_for('admin_catalogo_add') }}">
+<label>Foto de referencia (Pinterest, banco de fotos, etc.)</label>
+<input type="file" name="photo" accept="image/*" required>
+<label>Profissao (ex: Advogada, Medica, etc.)</label>
+<input type="text" name="profession" placeholder="Profissao" style="width:100%;padding:8px;margin-bottom:8px;border:1px solid #ddd;border-radius:6px;">
+<label>Prompt (opcional - cole de um .txt ou deixe vazio para extrair com IA depois)</label>
+<textarea name="prompt" placeholder="Cole o prompt aqui..." style="width:100%;padding:8px;min-height:80px;border:1px solid #ddd;border-radius:6px;font-family:monospace;font-size:13px;"></textarea>
+<button type="submit" class="btn btn-primary" style="margin-top:8px;">Adicionar</button>
+</form>
+</div>
+
+<div class="card">
+<h3>Fotos do Catalogo ({{ poses|length }})</h3>
+{% for p in poses %}
+<div style="border:1px solid #eee;border-radius:8px;padding:12px;margin-bottom:12px;">
+<div style="display:flex;gap:12px;flex-wrap:wrap;">
+<div style="width:150px;height:200px;display:flex;align-items:center;justify-content:center;background:#f5f5f5;border-radius:8px;overflow:hidden;flex-shrink:0;">
+<img src="{{ url_for('serve_upload', filename=p.filepath) }}" style="max-width:100%;max-height:100%;object-fit:contain;">
+</div>
+<div style="flex:1;min-width:250px;">
+<p style="font-size:13px;color:#666;margin:0 0 4px 0;"><strong>Profissao:</strong> {{ p.profession or 'Nao definida' }}</p>
+<form method="POST" action="{{ url_for('admin_catalogo_prompt', pid=p.id) }}">
+<label>Prompt:</label>
+<textarea name="prompt" style="width:100%;padding:8px;min-height:80px;border:1px solid #ddd;border-radius:6px;font-family:monospace;font-size:12px;">{{ p.prompt or '' }}</textarea>
+<div style="display:flex;gap:4px;margin-top:8px;flex-wrap:wrap;">
+<button type="submit" class="btn btn-primary" style="padding:5px 10px;font-size:12px;">Salvar Prompt</button>
+</form>
+<form method="POST" action="{{ url_for('admin_catalogo_extrair', pid=p.id) }}" style="display:inline;">
+<button type="submit" style="padding:5px 10px;font-size:12px;border:1px solid #f39c12;background:transparent;color:#f39c12;border-radius:6px;cursor:pointer;">Extrair com IA</button>
+</form>
+<form method="POST" action="{{ url_for('admin_catalogo_delete', pid=p.id) }}" style="display:inline;">
+<button type="submit" class="btn btn-danger" style="padding:5px 10px;font-size:12px;">Excluir</button>
+</form>
+</div>
+</div>
+</div>
+</div>
+{% endfor %}
+{% if not poses %}
+<p style="text-align:center;color:#888;">Nenhuma foto no catalogo ainda.</p>
+{% endif %}
+</div>
+{% endblock %}

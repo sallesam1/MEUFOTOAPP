@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ galeria.title }} - MeuFotoApp</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#333; min-height:100vh; padding-bottom:80px; }
+.header { background:linear-gradient(135deg,#1a1a2e,#16213e); color:#fff; padding:28px 20px; text-align:center; }
+.header h1 { font-size:22px; font-weight:700; margin-bottom:4px; }
+.header p { font-size:13px; opacity:0.8; }
+.container { max-width:1000px; margin:0 auto; padding:20px; }
+.info-bar { background:#fff; border-radius:10px; padding:14px 18px; margin-bottom:20px; box-shadow:0 2px 6px rgba(0,0,0,0.06); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
+.info-bar .info-item { font-size:13px; color:#666; }
+.info-bar .info-item strong { color:#333; font-weight:600; }
+.info-bar .selected-count { background:#e8f5e9; color:#27ae60; padding:6px 14px; border-radius:20px; font-size:13px; font-weight:600; }
+.photo-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:16px; }
+.photo-card { background:#fff; border-radius:10px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.08); transition:transform 0.2s,box-shadow 0.2s; position:relative; }
+.photo-card:hover { transform:translateY(-3px); box-shadow:0 6px 16px rgba(0,0,0,0.12); }
+.photo-card.selected { box-shadow:0 0 0 3px #27ae60,0 6px 16px rgba(39,174,96,0.3); }
+.photo-img { width:100%; height:260px; overflow:hidden; background:#f5f5f5; position:relative; cursor:pointer; }
+.photo-img img { width:100%; height:100%; object-fit:cover; display:block; }
+.check-overlay { position:absolute; top:8px; right:8px; width:28px; height:28px; border-radius:50%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; transition:all 0.2s; cursor:pointer; z-index:2; }
+.photo-card.selected .check-overlay { background:#27ae60; }
+.check-overlay svg { width:16px; height:16px; fill:none; stroke:#fff; stroke-width:3; }
+.expand-btn { position:absolute; bottom:8px; right:8px; width:30px; height:30px; border-radius:50%; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:2; transition:all 0.2s; }
+.expand-btn:hover { background:rgba(0,0,0,0.85); transform:scale(1.1); }
+.expand-btn svg { width:15px; height:15px; fill:none; stroke:#fff; stroke-width:2; }
+.photo-num { position:absolute; bottom:8px; left:8px; background:rgba(0,0,0,0.6); color:#fff; font-size:11px; padding:3px 8px; border-radius:4px; z-index:2; }
+.empty-state { text-align:center; padding:60px 20px; color:#999; }
+.empty-state .icon { font-size:56px; margin-bottom:12px; }
+.empty-state h3 { font-size:18px; margin-bottom:6px; color:#666; }
+.empty-state p { font-size:14px; }
+.action-bar { position:fixed; bottom:0; left:0; width:100%; background:#fff; box-shadow:0 -2px 10px rgba(0,0,0,0.1); padding:14px 20px; display:none; justify-content:center; z-index:100; }
+.action-bar.show { display:flex; }
+.action-bar .btn-send { background:linear-gradient(135deg,#27ae60,#2ecc71); color:#fff; border:none; padding:12px 36px; border-radius:30px; font-size:15px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+.action-bar .btn-send:hover { transform:scale(1.05); box-shadow:0 4px 12px rgba(39,174,96,0.4); }
+.lightbox { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.92); z-index:9999; justify-content:center; align-items:center; }
+.lightbox.show { display:flex; }
+.lightbox img { max-width:90%; max-height:85%; object-fit:contain; border-radius:6px; }
+.lightbox-close { position:absolute; top:15px; right:20px; color:#fff; font-size:36px; cursor:pointer; z-index:10000; line-height:1; }
+.lightbox-nav { position:absolute; top:50%; transform:translateY(-50%); color:#fff; font-size:42px; cursor:pointer; padding:10px 16px; user-select:none; z-index:10000; }
+.lightbox-prev { left:10px; }
+.lightbox-next { right:10px; }
+.lightbox-counter { position:absolute; bottom:20px; left:50%; transform:translateX(-50%); color:#fff; font-size:14px; opacity:0.7; }
+.footer { text-align:center; padding:24px 20px; color:#999; font-size:12px; }
+.success-msg { background:#e8f5e9; border:1px solid #c8e6c9; border-radius:10px; padding:16px 20px; margin-bottom:20px; text-align:center; }
+.success-msg h3 { color:#27ae60; font-size:16px; margin-bottom:4px; }
+.success-msg p { color:#555; font-size:13px; }
+@media (max-width:600px) {
+    .photo-grid { grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
+    .photo-img { height:180px; }
+    .header h1 { font-size:18px; }
+    .lightbox-nav { font-size:30px; padding:6px 10px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+<h1>{{ galeria.title }}</h1>
+{% if galeria.client_name %}
+<p>Ola, {{ galeria.client_name }}! Selecione suas fotos favoritas.</p>
+{% else %}
+<p>Selecione suas fotos favoritas</p>
+{% endif %}
+</div>
+
+<div class="container">
+
+{% if submitted %}
+<div class="success-msg">
+<h3>&#10003; Selecao enviada com sucesso!</h3>
+<p>Obrigado! Seu fotografo recebeu sua selecao.</p>
+</div>
+{% endif %}
+
+<div class="info-bar">
+<div class="info-item">
+{% if galeria.event_date %}<strong>Data:</strong> {{ galeria.event_date }} &nbsp;{% endif %}
+<strong>Total de fotos:</strong> {{ photos|length }}
+</div>
+<div class="selected-count" id="selCount" style="display:none;">0 selecionada(s)</div>
+</div>
+
+{% if photos %}
+<div class="photo-grid" id="photoGrid">
+{% for foto in photos %}
+<div class="photo-card" data-id="{{ foto.id }}" data-index="{{ loop.index0 }}">
+<div class="photo-img" onclick="toggleSelect({{ foto.id }}, {{ loop.index0 }})">
+{% if foto.filepath %}
+<img src="{{ url_for('serve_wm', filename=foto.filepath) }}" loading="lazy">
+{% else %}
+<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#ccc;font-size:40px;">&#128247;</div>
+{% endif %}
+<div class="check-overlay" id="check-{{ foto.id }}">
+<svg viewBox="0 0 24 24"><polyline points="5 12 10 17 19 8"></polyline></svg>
+</div>
+<div class="photo-num">{{ loop.index }}</div>
+</div>
+<div class="expand-btn" onclick="event.stopPropagation();openLightbox({{ loop.index0 }})">
+<svg viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+</div>
+</div>
+{% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+<div class="icon">&#128247;</div>
+<h3>Nenhuma foto disponivel</h3>
+<p>As fotos aparecerao aqui quando forem enviadas.</p>
+</div>
+{% endif %}
+</div>
+
+<div class="action-bar" id="actionBar">
+<button class="btn-send" onclick="sendSelection()">Enviar Selecao</button>
+</div>
+
+<div class="footer">
+<p>MeuFotoApp - Selecao de Fotos</p>
+</div>
+
+<div class="lightbox" id="lightbox">
+<span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+<img id="lightboxImg" src="">
+<span class="lightbox-nav lightbox-prev" onclick="navLightbox(-1)">&#8249;</span>
+<span class="lightbox-nav lightbox-next" onclick="navLightbox(1)">&#8250;</span>
+<div class="lightbox-counter" id="lightboxCounter"></div>
+</div>
+
+<script>
+var selectedPhotos = [];
+var photoIds = [];
+var allPhotos = [];
+
+{% for foto in photos %}
+allPhotos.push("{{ url_for('serve_wm', filename=foto.filepath) if foto.filepath else '' }}");
+photoIds.push({{ foto.id }});
+{% endfor %}
+
+function toggleSelect(id, index) {
+    var card = document.querySelector('.photo-card[data-id="' + id + '"]');
+    if (!card) return;
+    if (selectedPhotos.includes(id)) {
+        selectedPhotos = selectedPhotos.filter(function(x) { return x !== id; });
+        card.classList.remove('selected');
+    } else {
+        selectedPhotos.push(id);
+        card.classList.add('selected');
+    }
+    updateBar();
+}
+
+function updateBar() {
+    var bar = document.getElementById('actionBar');
+    var count = document.getElementById('selCount');
+    if (selectedPhotos.length > 0) {
+        bar.classList.add('show');
+        count.style.display = 'block';
+        count.textContent = selectedPhotos.length + ' selecionada(s)';
+    } else {
+        bar.classList.remove('show');
+        count.style.display = 'none';
+    }
+}
+
+function sendSelection() {
+    if (selectedPhotos.length === 0) return;
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = window.location.pathname;
+    selectedPhotos.forEach(function(id) {
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'selected_photos';
+        input.value = id;
+        form.appendChild(input);
+    });
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function openLightbox(index) {
+    if (!allPhotos[index]) return;
+    document.getElementById('lightboxImg').src = allPhotos[index];
+    document.getElementById('lightbox').classList.add('show');
+    document.getElementById('lightbox').dataset.index = index;
+    document.getElementById('lightboxCounter').textContent = (index + 1) + ' de ' + allPhotos.length;
+}
+
+function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('show');
+}
+
+function navLightbox(dir) {
+    var lb = document.getElementById('lightbox');
+    var idx = parseInt(lb.dataset.index) + dir;
+    if (idx < 0) idx = allPhotos.length - 1;
+    if (idx >= allPhotos.length) idx = 0;
+    if (allPhotos[idx]) {
+        document.getElementById('lightboxImg').src = allPhotos[idx];
+        lb.dataset.index = idx;
+        document.getElementById('lightboxCounter').textContent = (idx + 1) + ' de ' + allPhotos.length;
+    }
+}
+
+document.getElementById('lightbox').addEventListener('click', function(e) {
+    if (e.target === this) closeLightbox();
+});
+
+document.addEventListener('keydown', function(e) {
+    var lb = document.getElementById('lightbox');
+    if (!lb.classList.contains('show')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') navLightbox(-1);
+    if (e.key === 'ArrowRight') navLightbox(1);
+});
+</script>
+
+<script src="/static/js/mobile-fix.js"></script>
+</body>
+</html>

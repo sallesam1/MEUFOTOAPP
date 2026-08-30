@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Nova Galeria{% endblock %}
+{% block content %}
+<div class="page-header">
+<h1>Nova Galeria</h1>
+<p>Crie uma galeria para seu cliente</p>
+</div>
+<div class="card">
+<form method="POST">
+<label>Titulo</label>
+<input type="text" name="title" placeholder="Ex: Casamento Joao e Maria" required>
+<label>Cliente</label>
+<input type="text" name="client_name" placeholder="Nome do cliente">
+<label>E-mail do cliente</label>
+<input type="email" name="client_email" placeholder="cliente@email.com">
+<label>Categoria</label>
+<select name="category">
+<option value="">Selecione</option>
+{% for c in categories %}
+<option value="{{ c.slug }}">{{ c.label }}</option>
+{% endfor %}
+</select>
+<label>Data do evento</label>
+<input type="date" name="event_date">
+<label>Mensagem</label>
+<textarea name="client_message" rows="3" placeholder="Opcional"></textarea>
+<button type="submit" class="btn btn-primary">Criar Galeria</button>
+</form>
+</div>
+{% endblock %}

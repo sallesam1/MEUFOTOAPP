@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Selecoes de Poses - MeuFotoApp</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f4f6f8;color:#333}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:220px;background:#1a1a2e;padding:20px 0;overflow-y:auto}
+.sidebar .brand{padding:0 20px 20px;font-size:20px;font-weight:700;color:#fff;border-bottom:1px solid #30363d;margin-bottom:15px}
+.sidebar a{display:block;padding:10px 20px;color:#8b949e;text-decoration:none;font-size:14px;transition:0.2s}
+.sidebar a:hover{background:#21262d;color:#fff}
+.sidebar a.active{background:#238636;color:#fff}
+.main{margin-left:220px;padding:30px}
+.main h1{font-size:24px;margin-bottom:20px}
+.table-container{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08)}
+table{width:100%;border-collapse:collapse}
+th{background:#f8f9fa;padding:12px;text-align:left;font-size:11px;text-transform:uppercase;color:#666;border-bottom:2px solid #eee}
+td{padding:12px;border-bottom:1px solid #eee;font-size:13px}
+tr:hover{background:#f8f9fa}
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600}
+.badge.received{background:#d4edda;color:#155724}
+.btn-sm{padding:4px 10px;border:none;border-radius:4px;font-size:12px;cursor:pointer;font-weight:600;text-decoration:none;display:inline-block}
+.btn-download{background:#238636;color:#fff}
+.btn-delete{background:#da3633;color:#fff;border:none;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;font-weight:600;margin-left:4px}
+.empty{text-align:center;padding:40px;color:#999}
+@media(max-width:768px){.sidebar{display:none}.main{margin-left:0}}
+</style>
+</head>
+<body>
+<div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="sidebar">
+<div class="brand">MeuFotoApp</div>
+<a href="/dashboard">Dashboard</a>
+<a href="/galerias">Galerias</a>
+<a href="/selecoes">Selecoes</a>
+<a href="/portfolio">Portfolio</a>
+<a href="/catalogo-poses">Catalogo de Poses</a>
+<a href="/admin">Admin</a>
+<a href="/marca">Marca d Agua</a>
+<a href="/planos">Planos</a>
+<a href="/configuracoes">Configuracoes</a>
+<a href="/logout">Sair</a>
+</div>
+<div class="main">
+<h1>Selecoes de Poses Recebidas</h1>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Data</th>
+<th>Categoria</th>
+<th>Cliente</th>
+<th>E-mail</th>
+<th>Poses</th>
+<th>Mensagem</th>
+<th>Acoes</th>
+</tr>
+</thead>
+<tbody>
+{% if selections %}
+{% for sel in selections %}
+<tr>
+<td>{{ sel.created_at.strftime('%d/%m/%Y %H:%M') if sel.created_at else '-' }}</td>
+<td>{{ sel.category }}</td>
+<td>{{ sel.client_name }}</td>
+<td>{{ sel.client_email }}</td>
+<td>{{ sel.selected_poses.split(',')|length if sel.selected_poses else 0 }}</td>
+<td>{{ sel.message[:50] + '...' if sel.message and sel.message|length > 50 else (sel.message or '-') }}</td>
+<td>
+<form method="POST" action="/selecao-pose/{{ sel.id }}/deletar" style="display:inline;" onsubmit="return confirm('Deletar esta selecao?')">
+<button type="submit" class="btn-delete">Excluir</button>
+</form>
+</td>
+</tr>
+{% endfor %}
+{% else %}
+<tr><td colspan="7" style="text-align:center;padding:40px;color:#999;">Nenhuma selecao recebida ainda.</td></tr>
+{% endif %}
+</tbody>
+</table>
+</div>
+</div>
+
+<script src="/static/js/mobile-fix.js"></script>
+</body>
+</html>

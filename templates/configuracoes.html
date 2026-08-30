@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Configuracoes{% endblock %}
+{% block content %}
+<div class="page-header">
+<h1>Configuracoes</h1>
+<p>Gerencie sua conta</p>
+</div>
+<div class="card">
+<h3>Conta</h3>
+<p><strong>Estudio:</strong> {{ current_user.studio_name or 'Nao definido' }}</p>
+<p><strong>Nome:</strong> {{ current_user.name or 'Nao definido' }}</p>
+<p><strong>E-mail:</strong> {{ current_user.email }}</p>
+<p><strong>Plano:</strong> {{ current_user.plan or 'free' }}</p>
+{% if current_user.is_admin %}<p><strong>Acesso:</strong> Administrador</p>{% endif %}
+</div>
+{% if current_user.is_admin %}
+<div class="card">
+<h3>Configuracoes do App</h3>
+<form method="POST" action="{{ url_for('admin_settings') }}">
+<div class="form-group">
+<label class="form-label">Nome do App</label>
+<input type="text" name="app_name" class="form-control" value="{{ site_settings.app_name if site_settings else 'MeuFotoApp' }}">
+</div>
+<div class="form-group">
+<label class="form-label">Cor Principal</label>
+<input type="color" name="primary_color" value="{{ site_settings.primary_color if site_settings else '#4a90d9' }}" style="width:60px;height:36px;border:1px solid #ddd;border-radius:6px;cursor:pointer;">
+</div>
+<h4 style="margin-top:14px;margin-bottom:12px;">E-mail (SMTP)</h4>
+<div class="form-group">
+<label class="form-label">SMTP Host</label>
+<input type="text" name="smtp_host" class="form-control" value="{{ site_settings.smtp_host if site_settings else '' }}" placeholder="smtp.gmail.com">
+</div>
+<div class="form-group">
+<label class="form-label">SMTP Port</label>
+<input type="number" name="smtp_port" class="form-control" value="{{ site_settings.smtp_port if site_settings else '' }}" placeholder="587">
+</div>
+<div class="form-group">
+<label class="form-label">SMTP User</label>
+<input type="text" name="smtp_user" class="form-control" value="{{ site_settings.smtp_user if site_settings else '' }}" placeholder="seuemail@gmail.com">
+</div>
+<div class="form-group">
+<label class="form-label">SMTP Password</label>
+<input type="password" name="smtp_password" class="form-control" value="{{ site_settings.smtp_password if site_settings else '' }}" placeholder="App Password">
+</div>
+<button type="submit" class="btn btn-primary">Salvar</button>
+</form>
+</div>
+{% endif %}
+<div class="card">
+<h3>Acesso Rapido</h3>
+<div style="display:flex;gap:10px;flex-wrap:wrap;">
+<a href="{{ url_for('marca') }}" class="btn btn-primary">Marca d Agua</a>
+<a href="{{ url_for('portfolio') }}" class="btn btn-primary">Portfolio</a>
+<a href="{{ url_for('catalogo_poses') }}" class="btn btn-primary">Catalogo</a>
+<a href="{{ url_for('planos') }}" class="btn btn-primary">Planos</a>
+{% if current_user.is_admin %}
+<a href="{{ url_for('admin') }}" class="btn btn-primary">Admin</a>
+{% endif %}
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ category }} - Catalogo de Poses</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:#0d1117;color:#fff;min-height:100vh;padding-bottom:90px}
+.header{text-align:center;padding:40px 20px;background:#161b22;border-bottom:1px solid #30363d}
+.header h1{font-size:28px;color:#fff;font-weight:700}
+.header p{color:#8b949e;font-size:14px;margin-top:6px}
+.header .count{display:inline-block;background:#238636;color:#fff;padding:3px 12px;border-radius:20px;font-size:12px;margin-top:10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;padding:30px;max-width:1300px;margin:0 auto}
+.card{background:#161b22;border:2px solid #30363d;border-radius:12px;overflow:hidden;position:relative;transition:transform 0.2s,border-color 0.2s;cursor:pointer}
+.card:hover{transform:translateY(-3px)}
+.card img{width:100%;height:340px;object-fit:cover;display:block}
+.card .select-circle{position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.6);border:2px solid #8b949e;display:flex;align-items:center;justify-content:center;font-size:18px;color:#8b949e;z-index:5;transition:all 0.2s}
+.card.selected{border-color:#238636;box-shadow:0 0 0 2px #238636}
+.card.selected .select-circle{background:#238636;border-color:#238636;color:#fff}
+.card.selected .select-circle::after{content:'✓'}
+.empty{text-align:center;padding:60px 20px;color:#484f58;font-size:16px}
+.footer{text-align:center;padding:30px;color:#484f58;font-size:13px;border-top:1px solid #30363d}
+.sel-bar{position:fixed;bottom:0;left:0;right:0;background:#161b22;border-top:1px solid #30363d;padding:15px 30px;display:none;align-items:center;justify-content:space-between;z-index:100}
+.sel-bar.active{display:flex}
+.sel-bar .sel-count{color:#fff;font-size:14px;font-weight:600}
+.sel-bar button{background:#238636;color:#fff;border:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}
+.sel-bar button:hover{background:#2ea043}
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.active{display:flex}
+.modal-box{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:30px;width:90%;max-width:450px}
+.modal-box h2{color:#fff;font-size:20px;margin-bottom:20px}
+.modal-box input,.modal-box textarea{width:100%;padding:10px;background:#0d1117;border:1px solid #30363d;border-radius:8px;color:#fff;font-size:14px;margin-bottom:12px}
+.modal-box textarea{height:70px;resize:vertical}
+.modal-box button{background:#238636;color:#fff;border:none;padding:12px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;width:100%;margin-bottom:8px}
+.modal-box .close-btn{background:#30363d}
+.lightbox{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:9999;align-items:center;justify-content:center;cursor:zoom-out}
+.lightbox.active{display:flex}
+.lightbox img{max-width:92%;max-height:92%;border-radius:8px}
+.success-screen{text-align:center;padding:80px 20px}
+.success-screen .icon{font-size:64px;margin-bottom:20px}
+.success-screen h2{color:#fff;font-size:24px;margin-bottom:10px}
+.success-screen p{color:#8b949e;font-size:14px}
+@media(max-width:600px){.grid{grid-template-columns:1fr;padding:15px}.header h1{font-size:22px}.sel-bar{padding:10px 15px}.sel-bar button{padding:10px 18px}}
+</style>
+</head>
+<body>
+
+{% if selection_sent %}
+<div class="success-screen">
+<div class="icon">&#9989;</div>
+<h2>Selecao enviada com sucesso!</h2>
+<p>O fotografo recebera suas fotos selecionadas em breve.</p>
+</div>
+{% else %}
+
+<div class="header">
+<h1>{{ category }}</h1>
+<p>Catalogo de Poses</p>
+{% if poses %}<span class="count">{{ poses|length }} poses disponiveis</span>{% endif %}
+</div>
+
+{% if poses %}
+<div class="grid">
+{% for pose in poses %}
+<div class="card" id="card-{{ pose.id }}" onclick="toggleSelect({{ pose.id }})">
+<div class="select-circle"></div>
+{% if pose.filepath %}
+<img data-pose-id="{{ pose.id }}" src="/uploads/{{ pose.filepath }}" alt="Pose {{ loop.index }}" onclick="event.stopPropagation(); openLightbox(this.src)">
+{% else %}
+<div style="width:100%;height:340px;background:#21262d;display:flex;align-items:center;justify-content:center;color:#484f58;">Sem foto</div>
+{% endif %}
+</div>
+{% endfor %}
+</div>
+
+<div class="sel-bar" id="selBar">
+<span class="sel-count" id="selCount">0 fotos selecionadas</span>
+<button onclick="openModal()">Enviar Selecao</button>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+<div class="modal-box">
+<h2>Enviar Selecao</h2>
+<form method="POST" action="{{ url_for('public_catalog_selecionar', category=category) }}">
+<input type="text" name="client_name" placeholder="Seu nome" required>
+<input type="email" name="client_email" placeholder="Seu e-mail" required>
+<textarea name="message" placeholder="Mensagem (opcional)"></textarea>
+<input type="hidden" name="selected_poses" id="selectedPosesInput">
+<button type="submit">Enviar Selecao</button>
+</form>
+<button class="close-btn" onclick="closeModal()">Cancelar</button>
+</div>
+</div>
+
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+<img id="lightboxImg" src="">
+</div>
+
+{% else %}
+<div class="empty">Nenhuma pose encontrada nesta categoria.</div>
+{% endif %}
+
+{% endif %}
+
+<div class="footer">{{ site_settings.app_name if site_settings else 'MeuFotoApp' }} - Catalogo de Poses</div>
+
+<script>
+var selected = [];
+function toggleSelect(id) {
+  var card = document.getElementById('card-' + id);
+  if (selected.includes(id)) {
+    selected = selected.filter(function(x) { return x !== id; });
+    card.classList.remove('selected');
+  } else {
+    selected.push(id);
+    card.classList.add('selected');
+  }
+  updateBar();
+}
+function updateBar() {
+  var bar = document.getElementById('selBar');
+  var count = document.getElementById('selCount');
+  if (selected.length > 0) {
+    bar.classList.add('active');
+    count.textContent = selected.length + (selected.length === 1 ? ' foto selecionada' : ' fotos selecionadas');
+  } else {
+    bar.classList.remove('active');
+  }
+}
+function openModal() {
+  document.getElementById('selectedPosesInput').value = selected.join(',');
+  document.getElementById('modalOverlay').classList.add('active');
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+}
+function openLightbox(src) {
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('lightbox').classList.add('active');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('active');
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') { closeLightbox(); closeModal(); }
+});
+</script>
+
+<script src="/static/js/mobile-fix.js"></script>
+</body>
+</html>

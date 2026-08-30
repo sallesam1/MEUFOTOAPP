@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Selecoes{% endblock %}
+{% block content %}
+<div class="page-header">
+<h1>Selecoes</h1>
+<p>Selecoes recebidas dos clientes</p>
+</div>
+{% if selections %}
+<div class="card">
+<table>
+<tr><th>Data</th><th>Pacote</th><th>Status</th><th>Download</th></tr>
+{% for s in selections %}
+<tr>
+<td>{{ s.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+<td>{{ s.package_key or '-' }}</td>
+<td>{{ s.status }}</td>
+<td><a href="{{ url_for('download_selection', sid=s.id) }}" class="btn btn-primary" style="padding:4px 10px;font-size:12px;">ZIP</a></td>
+</tr>
+{% endfor %}
+</table>
+</div>
+{% else %}
+<div class="card" style="text-align:center;">
+<p style="color:#888;">Nenhuma selecao recebida.</p>
+</div>
+{% endif %}
+{% endblock %}
