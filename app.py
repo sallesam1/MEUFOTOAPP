@@ -16,28 +16,27 @@ from models import db, User, Galeria, Photo, Selection, Watermark, PortfolioPhot
 from config import Config
 from watermark import apply_watermark, enhance_image, get_watermarked_bytes
 from social_sizes import resize_for_social, SOCIAL_SIZES
-
 load_dotenv()
 app = Flask(__name__)
 app.config.from_object(Config)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
+
+# ===== CORRECAO: usa o banco do Supabase (PostgreSQL) se DATABASE_URL existir =====
+_database_url = os.environ.get('DATABASE_URL')
+if _database_url:
+    app.config['SQLALCHEMY_DATABASE_URI'] = _database_url
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_pre_ping': True}
+
 db.init_app(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
-
 @login_manager.user_loader
 def load_user(uid):
     return User.query.get(int(uid))
-
-@login_manager.user_loader
-def load_user(uid):
-    return User.query.get(int(uid))
-
 UPLOAD_FOLDER = os.path.join(app.root_path, 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 ALLOWED = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
-
 google = None
 if os.environ.get('GOOGLE_CLIENT_ID'):
     try:
@@ -50,23 +49,18 @@ if os.environ.get('GOOGLE_CLIENT_ID'):
             client_kwargs={'scope': 'openid email profile'})
     except ImportError:
         pass
-
 def allowed_file(fn):
     return '.' in fn and fn.rsplit('.', 1)[1].lower() in ALLOWED
-
 def trial_expired(user):
     if user.is_admin: return False
     if user.trial_started_at:
         return datetime.utcnow() > user.trial_started_at + timedelta(days=7)
     return False
-
-
 def send_notification_email(subject, body_html, recipient_email):
     settings = AppSettings.query.first()
     if not settings:
         print('AVISO: Nenhuma configuracao encontrada.')
         return False
-    # Usar smtp_host e smtp_user (campos originais do model)
     smtp_host = getattr(settings, 'smtp_host', None) or getattr(settings, 'smtp_server', None) or 'smtp.gmail.com'
     smtp_user = getattr(settings, 'smtp_user', None) or getattr(settings, 'notification_email', None)
     smtp_pass = getattr(settings, 'smtp_password', None)
@@ -92,13 +86,10 @@ def send_notification_email(subject, body_html, recipient_email):
     except Exception as e:
         print(f'ERRO ao enviar email: {e}')
         return False
-
-
 # ===== AUTH =====
 @app.route('/')
 def index():
     return redirect(url_for('dashboard')) if current_user.is_authenticated else redirect(url_for('login'))
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -109,13 +100,11 @@ def login():
             login_user(u); return redirect(url_for('dashboard'))
         flash('Credenciais invalidas', 'error')
     return render_template('login.html')
-
 @app.route('/login/google')
 def login_google():
     if not google:
         flash('Login com Google nao configurado.', 'error'); return redirect(url_for('login'))
     return google.authorize_redirect(url_for('authorize_google', _external=True))
-
 @app.route('/authorize/google')
 def authorize_google():
     if not google: return redirect(url_for('login'))
@@ -131,7 +120,6 @@ def authorize_google():
     elif not u.google_id:
         u.google_id = gid; db.session.commit()
     login_user(u); return redirect(url_for('dashboard'))
-
 @app.route('/registro', methods=['GET', 'POST'])
 def registro():
     if request.method == 'POST':
@@ -146,12 +134,10 @@ def registro():
         db.session.add(Watermark(user_id=u.id, text=u.studio_name or 'MeuFotoApp')); db.session.commit()
         login_user(u); return redirect(url_for('dashboard'))
     return render_template('registro.html')
-
 @app.route('/logout')
 @login_required
 def logout():
     logout_user(); return redirect(url_for('login'))
-
 # ===== DASHBOARD =====
 @app.route('/dashboard')
 @login_required
@@ -164,14 +150,12 @@ def dashboard():
     if current_user.trial_started_at and not current_user.is_admin:
         td = max(0, 7 - (datetime.utcnow() - current_user.trial_started_at).days)
     return render_template('dashboard.html', galerias=gs, total_fotos=tf, total_selecoes=ts, trial_days_left=td)
-
 # ===== GALERIAS =====
 @app.route('/galerias')
 @login_required
 def list_galerias():
     gs = Galeria.query.filter_by(user_id=current_user.id).order_by(Galeria.created_at.desc()).all()
     return render_template('list_galerias.html', galerias=gs)
-
 @app.route('/nova-galeria', methods=['GET', 'POST'])
 @login_required
 def nova_galeria():
@@ -186,7 +170,6 @@ def nova_galeria():
         db.session.add(g); db.session.commit()
         return redirect(url_for('galeria', gid=g.id))
     return render_template('nova_galeria.html', categories=[])
-
 @app.route('/galeria/<int:gid>', methods=['GET', 'POST'])
 @login_required
 def galeria(gid):
@@ -206,7 +189,6 @@ def galeria(gid):
     photos = Photo.query.filter_by(galeria_id=g.id).all()
     sels = Selection.query.filter_by(galeria_id=g.id).all()
     return render_template('galeria.html', galeria=g, photos=photos, selections=sels)
-
 @app.route('/galeria/<int:gid>/delete', methods=['POST'])
 @login_required
 def delete_galeria(gid):
@@ -219,7 +201,6 @@ def delete_galeria(gid):
     Selection.query.filter_by(galeria_id=g.id).delete()
     db.session.delete(g); db.session.commit()
     flash('Galeria excluida.', 'success'); return redirect(url_for('list_galerias'))
-
 @app.route('/galeria/<int:gid>/photo/<int:pid>/delete', methods=['POST'])
 @login_required
 def delete_photo(gid, pid):
@@ -229,7 +210,6 @@ def delete_photo(gid, pid):
     except: pass
     db.session.delete(p); db.session.commit()
     flash('Foto excluida.', 'success'); return redirect(url_for('galeria', gid=gid))
-
 @app.route('/galeria/<int:gid>/photo/<int:pid>/enhance', methods=['POST'])
 @login_required
 def enhance_photo(gid, pid):
@@ -240,7 +220,6 @@ def enhance_photo(gid, pid):
         flash('Imagem melhorada!', 'success')
     except: flash('Erro ao melhorar.', 'error')
     return redirect(url_for('galeria', gid=gid))
-
 @app.route('/galeria/<int:gid>/photo/<int:pid>/resize/<platform>')
 @login_required
 def resize_photo(gid, pid, platform):
@@ -249,7 +228,6 @@ def resize_photo(gid, pid, platform):
     out = resize_for_social(os.path.join(UPLOAD_FOLDER, p.filepath), platform)
     if out: return send_file(out, as_attachment=True)
     flash('Plataforma invalida.', 'error'); return redirect(url_for('galeria', gid=gid))
-
 @app.route('/galeria/<int:gid>/photo/<int:pid>/rewatermark', methods=['POST'])
 @login_required
 def rewatermark(gid, pid):
@@ -263,13 +241,11 @@ def rewatermark(gid, pid):
             flash('Marca dagua reaplicada!', 'success')
         except: flash('Erro ao aplicar marca dagua.', 'error')
     return redirect(url_for('galeria', gid=gid))
-
 @app.route('/uploads/<filename>')
 def serve_upload(filename):
     if filename == 'pending':
         abort(404)
     return send_from_directory(UPLOAD_FOLDER, filename)
-
 @app.route('/wm/<filename>')
 def serve_wm(filename):
     user_id = None
@@ -315,7 +291,6 @@ def cliente_view(token):
         ids = request.form.getlist('selected_photos')
         sel = Selection(galeria_id=g.id, photo_ids=','.join(ids), package_key=request.form.get('package_key'), status='received')
         db.session.add(sel); db.session.commit()
-        # ===== ENVIO DE EMAIL =====
         try:
             owner = User.query.get(g.user_id)
             recipient = None
@@ -341,7 +316,6 @@ def cliente_view(token):
         return render_template('cliente.html', galeria=g, photos=[], packages=[], submitted=True)
     photos = Photo.query.filter_by(galeria_id=g.id).all()
     return render_template('cliente.html', galeria=g, photos=photos, packages=[], submitted=False)
-
 # ===== SELECOES =====
 @app.route('/selecoes')
 @login_required
@@ -349,7 +323,6 @@ def selecoes():
     ids = [g.id for g in Galeria.query.filter_by(user_id=current_user.id).all()]
     sels = Selection.query.filter(Selection.galeria_id.in_(ids)).order_by(Selection.created_at.desc()).all() if ids else []
     return render_template('selecoes.html', selections=sels)
-
 @app.route('/selecoes/<int:sid>/download')
 @login_required
 def download_selection(sid):
@@ -364,7 +337,6 @@ def download_selection(sid):
             if os.path.exists(fp): zf.write(fp, p.filename or p.filepath)
     mem.seek(0)
     return send_file(mem, mimetype='application/zip', as_attachment=True, download_name=f'selecao_{sid}.zip')
-
 # ===== PORTFOLIO =====
 @app.route('/portfolio', methods=['GET', 'POST'])
 @login_required
@@ -383,7 +355,6 @@ def portfolio():
         flash('Item adicionado!', 'success'); return redirect(url_for('portfolio'))
     items = PortfolioPhoto.query.filter_by(user_id=current_user.id).order_by(PortfolioPhoto.created_at.desc()).all()
     return render_template('portfolio.html', items=items)
-
 @app.route('/portfolio/<int:iid>/delete', methods=['POST'])
 @login_required
 def delete_portfolio(iid):
@@ -395,7 +366,6 @@ def delete_portfolio(iid):
             except: pass
     db.session.delete(item); db.session.commit()
     flash('Item removido.', 'success'); return redirect(url_for('portfolio'))
-
 @app.route('/p/<token>')
 def portfolio_public(token):
     item = PortfolioPhoto.query.filter_by(share_token=token).first()
@@ -405,14 +375,12 @@ def portfolio_public(token):
         except (ValueError, TypeError):
             abort(404)
     return render_template('portfolio_public.html', item=item)
-
 # ===== CATALOGO POSES =====
 @app.route('/c/<token>')
 def public_catalog(token):
     user = User.query.filter_by(catalog_token=token).first()
     if not user:
         abort(404)
-
     from sqlalchemy import func
     rows = db.session.query(
         PosePhoto.profession,
@@ -426,7 +394,6 @@ def public_catalog(token):
     ).order_by(
         PosePhoto.profession.asc()
     ).all()
-
     cat_list = []
     for cat in rows:
         first = PosePhoto.query.filter_by(
@@ -435,36 +402,29 @@ def public_catalog(token):
         ).filter(
             PosePhoto.filepath != 'pending'
         ).order_by(PosePhoto.id.asc()).first()
-
         cat_list.append({
             'profession': cat.profession,
             'total': cat.total,
             'first_photo': first.filepath if first else None
         })
-
     studio = user.studio_name if user.studio_name else 'Catalogo de Poses'
     return render_template('public_catalog.html', categorias=cat_list, token=token, studio_name=studio, category=None, poses=[])
-
 @app.route('/c/<token>/<path:category>')
 def public_catalog_cat(token, category):
     user = User.query.filter_by(catalog_token=token).first()
     if not user:
         abort(404)
-
     poses = PosePhoto.query.filter_by(
         user_id=user.id,
         profession=category
     ).order_by(PosePhoto.id.asc()).all()
-
     studio = user.studio_name if user.studio_name else 'Catalogo de Poses'
     return render_template('public_catalog.html', poses=poses, token=token, studio_name=studio, category=category, categorias=[])
-
 @app.route('/m/<token>')
 def poses_public(token):
     pose = PosePhoto.query.filter_by(share_token=token).first_or_404()
     related = PosePhoto.query.filter_by(user_id=pose.user_id, group_name=pose.group_name).all()
     return render_template('catalogo_poses.html', poses=related, public=True)
-
 # ===== MARCA DAGUA =====
 @app.route('/marca', methods=['GET', 'POST'])
 @login_required
@@ -481,12 +441,10 @@ def marca():
             logo.save(os.path.join(UPLOAD_FOLDER, ln)); wm.logo_path = ln
         db.session.commit(); flash('Marca dagua salva!', 'success'); return redirect(url_for('marca'))
     return render_template('marca.html', wm=Watermark.query.filter_by(user_id=current_user.id).first())
-
 # ===== PLANOS =====
 @app.route('/planos')
 def planos():
     return render_template('planos.html')
-
 # ===== ADMIN =====
 @app.route('/admin')
 @login_required
@@ -513,39 +471,33 @@ def admin_settings():
     s.smtp_port = int(request.form.get('smtp_port', 587)) if request.form.get('smtp_port') else None
     s.smtp_user = request.form.get('smtp_user', ''); s.smtp_password = request.form.get('smtp_password', '')
     db.session.commit(); flash('Configuracoes salvas!', 'success'); return redirect(url_for('admin'))
-
 @app.route('/admin/categorias', methods=['POST'])
 @login_required
 def admin_categorias():
     if not current_user.is_admin: abort(403)
     flash('Gestao de categorias em manutencao.', 'error')
     return redirect(url_for('admin'))
-
 @app.route('/admin/categorias/<int:cid>/delete', methods=['POST'])
 @login_required
 def delete_categoria(cid):
     if not current_user.is_admin: abort(403)
     flash('Gestao de categorias em manutencao.', 'error'); return redirect(url_for('admin'))
-
 @app.route('/admin/pacotes', methods=['POST'])
 @login_required
 def admin_pacotes():
     if not current_user.is_admin: abort(403)
     flash('Gestao de pacotes em manutencao.', 'error')
     return redirect(url_for('admin'))
-
 @app.route('/admin/pacotes/<int:pid>/delete', methods=['POST'])
 @login_required
 def delete_pacote(pid):
     if not current_user.is_admin: abort(403)
     flash('Gestao de pacotes em manutencao.', 'error'); return redirect(url_for('admin'))
-
 # ===== CONFIGURACOES =====
 @app.route('/configuracoes')
 @login_required
 def configuracoes():
     return render_template('configuracoes.html')
-
 # ===== SEED =====
 def seed_data():
     try:
@@ -554,11 +506,9 @@ def seed_data():
             db.session.commit()
     except:
         db.session.rollback()
-
 def public_portfolio_item(iid):
     item = PortfolioPhoto.query.get_or_404(iid)
     return render_template('public_portfolio.html', item=item)
-
 @app.route('/extrair_prompt/<int:pid>', methods=['POST'])
 @login_required
 def extrair_prompt(pid):
@@ -595,7 +545,6 @@ def extrair_prompt(pid):
     except Exception as e:
         flash('Erro ao extrair: ' + str(e), 'error')
     return redirect(url_for('catalogo_poses'))
-
 @app.route('/salvar_prompt/<int:pid>', methods=['POST'])
 @login_required
 def salvar_prompt(pid):
@@ -604,7 +553,6 @@ def salvar_prompt(pid):
     db.session.commit()
     flash('Prompt salvo!', 'success')
     return redirect(url_for('catalogo_poses'))
-
 @app.route('/admin/catalogo')
 @login_required
 def admin_catalogo():
@@ -612,7 +560,6 @@ def admin_catalogo():
         abort(403)
     poses = PosePhoto.query.all()
     return render_template('admin_catalogo.html', poses=poses)
-
 @app.route('/admin/catalogo/add', methods=['POST'])
 @login_required
 def admin_catalogo_add():
@@ -630,7 +577,6 @@ def admin_catalogo_add():
         db.session.commit()
         flash('Foto adicionada ao catalogo', 'success')
     return redirect(url_for('admin_catalogo'))
-
 @app.route('/admin/catalogo/delete/<int:pid>', methods=['POST'])
 @login_required
 def admin_catalogo_delete(pid):
@@ -645,7 +591,6 @@ def admin_catalogo_delete(pid):
     db.session.commit()
     flash('Foto removida', 'success')
     return redirect(url_for('admin_catalogo'))
-
 @app.route('/admin/catalogo/prompt/<int:pid>', methods=['POST'])
 @login_required
 def admin_catalogo_prompt(pid):
@@ -656,7 +601,6 @@ def admin_catalogo_prompt(pid):
     db.session.commit()
     flash('Prompt atualizado', 'success')
     return redirect(url_for('admin_catalogo'))
-
 @app.route('/admin/catalogo/extrair/<int:pid>', methods=['POST'])
 @login_required
 def admin_catalogo_extrair(pid):
@@ -695,7 +639,6 @@ def admin_catalogo_extrair(pid):
     except Exception as e:
         flash('Erro: ' + str(e), 'error')
     return redirect(url_for('admin_catalogo'))
-
 @app.route('/admin/apikey', methods=['POST'])
 @login_required
 def admin_apikey():
@@ -709,8 +652,6 @@ def admin_apikey():
     db.session.commit()
     flash('API Key salva', 'success')
     return redirect(url_for('admin_catalogo'))
-
-
 # ===== ADICIONAR POSES DENTRO DE CATEGORIAS =====
 @app.route('/admin/user/<int:uid>/make-admin', methods=['POST'])
 @login_required
@@ -722,7 +663,6 @@ def admin_make_admin(uid):
     db.session.commit()
     flash('Permissao de admin alterada.', 'success')
     return redirect(url_for('admin'))
-
 @app.route('/admin/user/<int:uid>/delete', methods=['POST'])
 @login_required
 def admin_delete_user(uid):
@@ -743,9 +683,6 @@ def admin_delete_user(uid):
     db.session.commit()
     flash('Usuario deletado.', 'success')
     return redirect(url_for('admin'))
-
-
-
 # ===== NOVA CATEGORIA DE POSES =====
 # ===== CATALOGO DE POSES (LIMPO) =====
 @app.route('/catalogo-poses')
@@ -772,7 +709,6 @@ def catalogo_poses():
         ).filter(PosePhoto.filepath.isnot(None)).first()
         cat_info.append({'nome': cat, 'count': count, 'thumb': thumb.filepath if thumb else None})
     return render_template('catalogo_poses.html', categorias=cat_info)
-
 @app.route('/catalogo-poses/nova-categoria', methods=['POST'])
 @login_required
 def nova_categoria_pose():
@@ -804,7 +740,6 @@ def nova_categoria_pose():
         db.session.rollback()
         flash(f'Erro ao criar categoria: {str(e)}', 'error')
         return redirect(url_for('catalogo_poses'))
-
 @app.route('/catalogo-poses/<path:category>')
 @login_required
 def catalogo_categoria(category):
@@ -815,7 +750,6 @@ def catalogo_categoria(category):
         or_(PosePhoto.category == category, PosePhoto.profession == category)
     ).order_by(PosePhoto.id.asc()).all()
     return render_template('catalogo_categoria.html', poses=poses, category=category)
-
 @app.route('/catalogo-poses/<path:category>/add', methods=['GET', 'POST'])
 @login_required
 def add_pose(category):
@@ -844,7 +778,6 @@ def add_pose(category):
         flash('Pose adicionada com sucesso!', 'success')
         return redirect(url_for('catalogo_categoria', category=category))
     return redirect(url_for('catalogo_categoria', category=category))
-
 @app.route('/catalogo-poses/<path:category>/pose/<int:pid>/delete', methods=['POST'])
 @login_required
 def delete_pose(category, pid):
@@ -857,8 +790,6 @@ def delete_pose(category, pid):
     db.session.commit()
     flash('Pose removida.', 'success')
     return redirect(url_for('catalogo_categoria', category=category))
-
-
 # ===== ADMIN ACTIONS =====
 @app.route('/admin/user/<int:uid>/plan', methods=['POST'])
 @login_required
@@ -874,7 +805,6 @@ def admin_change_plan(uid):
     else:
         flash('Plano invalido.', 'error')
     return redirect(url_for('admin'))
-
 @app.route('/admin/user/<int:uid>/toggle-block', methods=['POST'])
 @login_required
 def admin_toggle_block(uid):
@@ -889,9 +819,6 @@ def admin_toggle_block(uid):
     estado = 'ATIVO' if user.active else 'BLOQUEADO'
     flash(f'Usuario {estado}.', 'success')
     return redirect(url_for('admin'))
-
-
-
 # ===== UPLOAD DE FOTO PARA POSE EXISTENTE =====
 @app.route('/catalogo-poses/<path:category>/<int:pid>/upload-photo', methods=['POST'])
 @login_required
@@ -911,9 +838,6 @@ def upload_pose_photo(category, pid):
     else:
         flash('Nenhum arquivo selecionado.', 'error')
     return redirect(url_for('catalogo_categoria', category=category))
-
-
-
 # ===== RENOMEAR CATEGORIA =====
 @app.route('/catalogo-poses/<path:category>/rename', methods=['POST'])
 @login_required
@@ -936,8 +860,6 @@ def rename_category(category):
     db.session.commit()
     flash('Categoria renomeada!', 'success')
     return redirect(url_for('catalogo_categoria', category=new_name))
-
-
 # ===== SALVAR NOME DO APP =====
 @app.route('/configuracoes/app-name', methods=['POST'])
 @login_required
@@ -952,9 +874,6 @@ def save_app_name():
         db.session.commit()
         flash('Nome do app atualizado!', 'success')
     return redirect(url_for('configuracoes'))
-
-
-
 # ===== CATALOGO PUBLICO (SEM LOGIN) =====
 @app.route('/catalogo-publico/<path:category>')
 def catalogo_publico(category):
@@ -965,9 +884,6 @@ def catalogo_publico(category):
         or_(PosePhoto.category == category, PosePhoto.profession == category)
     ).order_by(PosePhoto.id.asc()).all()
     return render_template('public_catalog.html', poses=poses, category=category)
-
-
-
 # ===== SELECAO DE POSES PELO CLIENTE =====
 @app.route('/catalogo-publico/<path:category>/selecionar', methods=['POST'])
 def public_catalog_selecionar(category):
@@ -981,18 +897,13 @@ def public_catalog_selecionar(category):
     sel.message = request.form.get('message', '')
     db.session.add(sel)
     db.session.commit()
-    
-    # Buscar poses selecionadas para o email
     pose_ids = [int(x) for x in sel.selected_poses.split(',') if x.strip().isdigit()]
     selected_poses = PosePhoto.query.filter(PosePhoto.id.in_(pose_ids)).all() if pose_ids else []
-    
-    # Enviar email de notificacao
     settings = AppSettings.query.first()
     recipient = None
     if settings:
         recipient = settings.notification_email or settings.smtp_user
     print(f'>>> EMAIL: recipient={recipient}, settings.smtp_user={getattr(settings, "smtp_user", None)}, settings.notification_email={getattr(settings, "notification_email", None)}')
-    
     if recipient:
         try:
             html = f'<h2 style="color:#238636;">Nova selecao de poses - {category}</h2>'
@@ -1009,9 +920,7 @@ def public_catalog_selecionar(category):
             print(f'>>> EMAIL ERRO: {e}')
     else:
         print('>>> EMAIL: Nenhum destinatario configurado!')
-    
     return render_template('public_catalog.html', category=category, poses=PosePhoto.query.filter_by(category=category).all(), selection_sent=True, site_settings=settings)
-
 @app.route('/selecoes-poses')
 @login_required
 def selecoes_poses():
@@ -1020,11 +929,6 @@ def selecoes_poses():
         pose_ids = [int(x) for x in sel.selected_poses.split(',') if x.strip().isdigit()]
         sel.poses = PosePhoto.query.filter(PosePhoto.id.in_(pose_ids)).all() if pose_ids else []
     return render_template('selecoes_poses.html', selections=selections)
-
-
-
-
-
 # ===== BLOQUEAR/DESBLOQUEAR USUARIO =====
 @app.route('/admin/usuario/<int:user_id>/bloquear', methods=['POST'])
 @login_required
@@ -1034,8 +938,6 @@ def bloquear_usuario(user_id):
     db.session.commit()
     flash('Usuario {} com sucesso!'.format('bloqueado' if not user.active else 'desbloqueado'), 'success')
     return redirect(url_for('admin'))
-
-
 # ===== ALTERAR PLANO DO USUARIO =====
 @app.route('/admin/usuario/<int:user_id>/plano', methods=['POST'])
 @login_required
@@ -1045,7 +947,6 @@ def alterar_plano_usuario(user_id):
     db.session.commit()
     flash('Plano do usuario atualizado!', 'success')
     return redirect(url_for('admin'))
-
 # ===== SALVAR CONFIG DE EMAIL =====
 @app.route('/configuracoes/email', methods=['POST'])
 @login_required
@@ -1067,8 +968,6 @@ def save_email_config():
     db.session.commit()
     flash('Configuracoes de email salvas!', 'success')
     return redirect(url_for('configuracoes'))
-
-
 # ===== DELETAR SELECAO =====
 @app.route('/selecao/<int:sid>/deletar', methods=['POST'])
 @login_required
@@ -1079,7 +978,6 @@ def deletar_selecao(sid):
     db.session.commit()
     flash('Selecao deletada!', 'success')
     return redirect(request.referrer or url_for('galeria', gid=sel.galeria_id))
-
 @app.route('/selecao-pose/<int:sid>/deletar', methods=['POST'])
 @login_required
 def deletar_selecao_pose(sid):
@@ -1091,8 +989,8 @@ def deletar_selecao_pose(sid):
 @app.route('/landing')
 def landing():
     return render_template('landing.html')
-
+# ===== CORRECAO: cria as tabelas automaticamente ao iniciar (funciona no Render) =====
+with app.app_context():
+    db.create_all()
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=False)
