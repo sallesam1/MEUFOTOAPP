@@ -26,8 +26,8 @@
 <div style="background:#e8f5e9;padding:12px;border-radius:8px;margin-bottom:12px;border:1px solid #a5d6a7;">
 <p style="font-size:13px;color:#2e7d32;margin:0 0 6px 0;"><strong>LINK DE ENTREGA:</strong></p>
 <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-<a href="http://localhost:5000/p/{{ item.share_token }}" style="font-size:13px;color:#4a90d9;word-break:break-all;flex:1;">http://localhost:5000/p/{{ item.share_token }}</a>
-<button onclick="copyLink('http://localhost:5000/p/{{ item.share_token }}',this)" class="btn btn-primary" style="padding:4px 10px;font-size:12px;flex-shrink:0;">Copiar</button>
+<a href="{{ request.host_url }}p/{{ item.share_token }}" style="font-size:13px;color:#4a90d9;word-break:break-all;flex:1;">{{ request.host_url }}p/{{ item.share_token }}</a>
+<button onclick="copyLink('{{ request.host_url }}p/{{ item.share_token }}',this)" class="btn btn-primary" style="padding:4px 10px;font-size:12px;flex-shrink:0;">Copiar</button>
 </div>
 </div>
 {% endif %}
