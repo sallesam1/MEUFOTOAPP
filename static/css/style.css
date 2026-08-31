@@ -72,3 +72,20 @@ table{font-size:.85rem}
 .sidebar{width:100%}
 .login-card{padding:1.5rem;margin:.5rem}
 }
+/* ETIQUETAS ANTES/DEPOIS SOBRE A FOTO */
+[class*="antes"], [class*="depois"] {
+    position: absolute;
+    top: 10px;
+    background: rgba(0,0,0,.75);
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 700;
+    z-index: 5;
+}
+[class*="antes"] { left: 10px; }
+[class*="depois"] { right: 10px; left: auto; }
+[class*="card"], [class*="item"], [class*="pair"], [class*="wrap"] {
+    position: relative;
+}
