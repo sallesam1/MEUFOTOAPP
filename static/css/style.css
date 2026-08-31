@@ -89,3 +89,26 @@ table{font-size:.85rem}
 [class*="card"], [class*="item"], [class*="pair"], [class*="wrap"] {
     position: relative;
 }
+
+/* ETIQUETAS ANTES/DEPOIS POR CIMA DA FOTO - CORRECAO DEFINITIVA */
+.grid .card > div[style*="display:flex"] > div {
+    position: relative;
+    display: inline-block;
+}
+.grid .card > div[style*="display:flex"] > div > p {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: rgba(0,0,0,.75);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    z-index: 5;
+    margin: 0;
+}
+.grid .card > div[style*="display:flex"] > div:last-child > p {
+    left: auto;
+    right: 8px;
+}
