@@ -1,6 +1,25 @@
 from PIL import Image, ImageDraw, ImageFont, ImageEnhance
 import io
 
+def _carregar_fonte(tamanho):
+    """Procura a fonte em vários lugares (Windows e Linux) pra funcionar no computador e no site."""
+    caminhos = [
+        'C:/Windows/Fonts/arial.ttf',          # Windows
+        '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',  # Linux (Render)
+        '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',  # Linux
+        'arial.ttf',                            # genérico
+    ]
+    for caminho in caminhos:
+        try:
+            return ImageFont.truetype(caminho, tamanho)
+        except:
+            continue
+    # Se nenhuma fonte existir, usa a padrão (com tamanho, se o Pillow permitir)
+    try:
+        return ImageFont.load_default(size=tamanho)
+    except:
+        return ImageFont.load_default()
+
 def get_watermarked_bytes(filepath, text='MeuFotoApp', color='#ffffff', opacity=30, position='diagonal', stroke=False, logo_path=None):
     img = Image.open(filepath).convert('RGBA')
     r = int(color[1:3], 16) if color.startswith('#') and len(color) >= 7 else 255
@@ -10,13 +29,7 @@ def get_watermarked_bytes(filepath, text='MeuFotoApp', color='#ffffff', opacity=
 
     # Tamanho da fonte proporcional e discreto (~4% da largura)
     fs = max(14, int(img.width * 0.04))
-    try:
-        font = ImageFont.truetype('C:/Windows/Fonts/arial.ttf', fs)
-    except:
-        try:
-            font = ImageFont.truetype('arial.ttf', fs)
-        except:
-            font = ImageFont.load_default()
+    font = _carregar_fonte(fs)
 
     overlay = Image.new('RGBA', img.size, (0, 0, 0, 0))
     d = ImageDraw.Draw(overlay)
@@ -33,7 +46,6 @@ def get_watermarked_bytes(filepath, text='MeuFotoApp', color='#ffffff', opacity=
         else:
             dm.text((20, 20), text, font=font, fill=(r, g, b, alpha))
         marca = marca.rotate(-45, resample=Image.BICUBIC, expand=True)
-        # Posição: canto inferior direito, com margem
         margem = int(img.width * 0.03)
         x = img.width - marca.width - margem
         y = img.height - marca.height - margem
