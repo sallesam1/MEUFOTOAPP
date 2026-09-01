@@ -7,7 +7,9 @@ def get_watermarked_bytes(filepath, text='MeuFotoApp', color='#ffffff', opacity=
     g = int(color[3:5], 16) if color.startswith('#') and len(color) >= 7 else 255
     b = int(color[5:7], 16) if color.startswith('#') and len(color) >= 7 else 255
     alpha = int(opacity * 255 / 100)
-    fs = max(14, img.width // 25)
+
+    # Tamanho da fonte proporcional e discreto (~4% da largura)
+    fs = max(14, int(img.width * 0.04))
     try:
         font = ImageFont.truetype('C:/Windows/Fonts/arial.ttf', fs)
     except:
@@ -16,52 +18,36 @@ def get_watermarked_bytes(filepath, text='MeuFotoApp', color='#ffffff', opacity=
         except:
             font = ImageFont.load_default()
 
+    overlay = Image.new('RGBA', img.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(overlay)
+    bb = d.textbbox((0, 0), text, font=font)
+    tw = bb[2] - bb[0]
+    th = bb[3] - bb[1]
+
     if position == 'diagonal':
-        # Canvas grande, desenha em grade, DEPOIS ROTACIONA
-        canvas_w = img.width * 3
-        canvas_h = img.height * 3
-        diag = Image.new('RGBA', (canvas_w, canvas_h), (0, 0, 0, 0))
-        d = ImageDraw.Draw(diag)
-        bb = d.textbbox((0, 0), text, font=font)
-        tw = bb[2] - bb[0]
-        th = bb[3] - bb[1]
-        sp_x = tw + max(150, img.width // 3)
-        sp_y = max(50, fs + 30)
-        for y in range(0, canvas_h, sp_y):
-            for x in range(0, canvas_w, sp_x):
-                if stroke:
-                    d.text((x, y), text, font=font, fill=(r, g, b, alpha), stroke_width=1, stroke_fill=(0, 0, 0, alpha))
-                else:
-                    d.text((x, y), text, font=font, fill=(r, g, b, alpha))
-        # ROTACIONAR -45 GRAUS
-        diag = diag.rotate(-45, resample=Image.BICUBIC)
-        # CORTAR no tamanho original
-        left = (diag.width - img.width) // 2
-        top = (diag.height - img.height) // 2
-        diag = diag.crop((left, top, left + img.width, top + img.height))
-        result = Image.alpha_composite(img, diag)
+        # Desenha UMA vez, rotaciona -45 e posiciona discreta no canto inferior direito
+        marca = Image.new('RGBA', (tw + 40, th + 40), (0, 0, 0, 0))
+        dm = ImageDraw.Draw(marca)
+        if stroke:
+            dm.text((20, 20), text, font=font, fill=(r, g, b, alpha), stroke_width=1, stroke_fill=(0, 0, 0, alpha))
+        else:
+            dm.text((20, 20), text, font=font, fill=(r, g, b, alpha))
+        marca = marca.rotate(-45, resample=Image.BICUBIC, expand=True)
+        # Posição: canto inferior direito, com margem
+        margem = int(img.width * 0.03)
+        x = img.width - marca.width - margem
+        y = img.height - marca.height - margem
+        overlay.paste(marca, (x, y), marca)
     else:
-        overlay = Image.new('RGBA', img.size, (0, 0, 0, 0))
-        d = ImageDraw.Draw(overlay)
-        fs2 = max(20, img.width // 10)
-        try:
-            font2 = ImageFont.truetype('C:/Windows/Fonts/arial.ttf', fs2)
-        except:
-            try:
-                font2 = ImageFont.truetype('arial.ttf', fs2)
-            except:
-                font2 = ImageFont.load_default()
-        bb = d.textbbox((0, 0), text, font=font2)
-        tw = bb[2] - bb[0]
-        th = bb[3] - bb[1]
+        # Centralizada
         x = (img.width - tw) / 2
         y = (img.height - th) / 2
         if stroke:
-            d.text((x, y), text, font=font2, fill=(r, g, b, alpha), stroke_width=2, stroke_fill=(0, 0, 0, alpha))
+            d.text((x, y), text, font=font, fill=(r, g, b, alpha), stroke_width=2, stroke_fill=(0, 0, 0, alpha))
         else:
-            d.text((x, y), text, font=font2, fill=(r, g, b, alpha))
-        result = Image.alpha_composite(img, overlay)
+            d.text((x, y), text, font=font, fill=(r, g, b, alpha))
 
+    result = Image.alpha_composite(img, overlay)
     output = result.convert('RGB')
     buf = io.BytesIO()
     output.save(buf, format='JPEG', quality=95)
