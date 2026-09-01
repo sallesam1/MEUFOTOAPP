@@ -1,20 +1,22 @@
 from PIL import Image, ImageDraw, ImageFont, ImageEnhance
 import io
 
-def _carregar_fonte(tamanho):
-    """Procura a fonte em vários lugares (Windows e Linux) pra funcionar no computador e no site."""
+def _carregar_fonte_negrito(tamanho):
+    """Procura a fonte em NEGRITO (bold) em vários lugares (Windows e Linux)."""
     caminhos = [
-        'C:/Windows/Fonts/arial.ttf',          # Windows
-        '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',  # Linux (Render)
-        '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',  # Linux
-        'arial.ttf',                            # genérico
+        'C:/Windows/Fonts/arialbd.ttf',          # Windows - Arial Bold
+        'C:/Windows/Fonts/arial.ttf',            # Windows - Arial (fallback)
+        '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',  # Linux - Bold
+        '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',       # Linux (fallback)
+        '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf',  # Linux
+        'arialbd.ttf',                           # genérico
+        'arial.ttf',                             # genérico
     ]
     for caminho in caminhos:
         try:
             return ImageFont.truetype(caminho, tamanho)
         except:
             continue
-    # Se nenhuma fonte existir, usa a padrão (com tamanho, se o Pillow permitir)
     try:
         return ImageFont.load_default(size=tamanho)
     except:
@@ -27,39 +29,51 @@ def get_watermarked_bytes(filepath, text='MeuFotoApp', color='#ffffff', opacity=
     b = int(color[5:7], 16) if color.startswith('#') and len(color) >= 7 else 255
     alpha = int(opacity * 255 / 100)
 
-    # Tamanho da fonte proporcional e discreto (~4% da largura)
-    fs = max(14, int(img.width * 0.04))
-    font = _carregar_fonte(fs)
-
-    overlay = Image.new('RGBA', img.size, (0, 0, 0, 0))
-    d = ImageDraw.Draw(overlay)
-    bb = d.textbbox((0, 0), text, font=font)
-    tw = bb[2] - bb[0]
-    th = bb[3] - bb[1]
+    # Tamanho da fonte proporcional (como no localhost)
+    fs = max(14, img.width // 25)
+    font = _carregar_fonte_negrito(fs)
 
     if position == 'diagonal':
-        # Desenha UMA vez, rotaciona -45 e posiciona discreta no canto inferior direito
-        marca = Image.new('RGBA', (tw + 40, th + 40), (0, 0, 0, 0))
-        dm = ImageDraw.Draw(marca)
-        if stroke:
-            dm.text((20, 20), text, font=font, fill=(r, g, b, alpha), stroke_width=1, stroke_fill=(0, 0, 0, alpha))
-        else:
-            dm.text((20, 20), text, font=font, fill=(r, g, b, alpha))
-        marca = marca.rotate(-45, resample=Image.BICUBIC, expand=True)
-        margem = int(img.width * 0.03)
-        x = img.width - marca.width - margem
-        y = img.height - marca.height - margem
-        overlay.paste(marca, (x, y), marca)
+        # PADRÃO EM GRADE - desenha o texto repetido em diagonal por toda a foto
+        canvas_w = img.width * 3
+        canvas_h = img.height * 3
+        diag = Image.new('RGBA', (canvas_w, canvas_h), (0, 0, 0, 0))
+        d = ImageDraw.Draw(diag)
+        bb = d.textbbox((0, 0), text, font=font)
+        tw = bb[2] - bb[0]
+        th = bb[3] - bb[1]
+        sp_x = tw + max(150, img.width // 3)
+        sp_y = max(50, fs + 30)
+        for y in range(0, canvas_h, sp_y):
+            for x in range(0, canvas_w, sp_x):
+                if stroke:
+                    d.text((x, y), text, font=font, fill=(r, g, b, alpha), stroke_width=1, stroke_fill=(0, 0, 0, alpha))
+                else:
+                    d.text((x, y), text, font=font, fill=(r, g, b, alpha))
+        # Rotaciona -45 graus
+        diag = diag.rotate(-45, resample=Image.BICUBIC)
+        # Corta no tamanho original
+        left = (diag.width - img.width) // 2
+        top = (diag.height - img.height) // 2
+        diag = diag.crop((left, top, left + img.width, top + img.height))
+        result = Image.alpha_composite(img, diag)
     else:
         # Centralizada
+        overlay = Image.new('RGBA', img.size, (0, 0, 0, 0))
+        d = ImageDraw.Draw(overlay)
+        fs2 = max(20, img.width // 10)
+        font2 = _carregar_fonte_negrito(fs2)
+        bb = d.textbbox((0, 0), text, font=font2)
+        tw = bb[2] - bb[0]
+        th = bb[3] - bb[1]
         x = (img.width - tw) / 2
         y = (img.height - th) / 2
         if stroke:
-            d.text((x, y), text, font=font, fill=(r, g, b, alpha), stroke_width=2, stroke_fill=(0, 0, 0, alpha))
+            d.text((x, y), text, font=font2, fill=(r, g, b, alpha), stroke_width=2, stroke_fill=(0, 0, 0, alpha))
         else:
-            d.text((x, y), text, font=font, fill=(r, g, b, alpha))
+            d.text((x, y), text, font=font2, fill=(r, g, b, alpha))
+        result = Image.alpha_composite(img, overlay)
 
-    result = Image.alpha_composite(img, overlay)
     output = result.convert('RGB')
     buf = io.BytesIO()
     output.save(buf, format='JPEG', quality=95)
