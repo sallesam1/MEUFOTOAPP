@@ -56,4 +56,88 @@
 {% if not items %}
 <p style="text-align:center;color:#888;margin-top:24px;">Nenhum item no portfolio.</p>
 {% endif %}
+
+<script>
+function copyLink(texto, botao) {
+    var original = botao.innerHTML;
+    function sucesso() {
+        botao.innerHTML = 'Copiado!';
+        setTimeout(function(){ botao.innerHTML = original; }, 2000);
+    }
+    function falha() {
+        botao.innerHTML = 'Erro';
+        setTimeout(function(){ botao.innerHTML = original; }, 2000);
+    }
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(texto).then(sucesso, falha);
+        return;
+    }
+    var area = document.createElement('textarea');
+    area.value = texto;
+    area.style.position = 'fixed';
+    area.style.opacity = '0';
+    document.body.appendChild(area);
+    area.focus();
+    area.select();
+    try {
+        var ok = document.execCommand('copy');
+        document.body.removeChild(area);
+        if (ok) { sucesso(); } else { falha(); }
+    } catch (e) {
+        document.body.removeChild(area);
+        falha();
+    }
+}
+
+function openLightbox(src) {
+    var fundo = document.createElement('div');
+    fundo.id = 'lightbox';
+    fundo.style.position = 'fixed';
+    fundo.style.top = '0';
+    fundo.style.left = '0';
+    fundo.style.width = '100%';
+    fundo.style.height = '100%';
+    fundo.style.background = 'rgba(0,0,0,0.9)';
+    fundo.style.zIndex = '9999';
+    fundo.style.display = 'flex';
+    fundo.style.alignItems = 'center';
+    fundo.style.justifyContent = 'center';
+    fundo.style.cursor = 'zoom-out';
+
+    var img = document.createElement('img');
+    img.src = src;
+    img.style.maxWidth = '92%';
+    img.style.maxHeight = '92%';
+    img.style.borderRadius = '8px';
+    img.style.boxShadow = '0 0 30px rgba(0,0,0,0.8)';
+
+    var fechar = document.createElement('div');
+    fechar.innerHTML = '&#10005;';
+    fechar.style.position = 'fixed';
+    fechar.style.top = '15px';
+    fechar.style.right = '25px';
+    fechar.style.color = '#fff';
+    fechar.style.fontSize = '40px';
+    fechar.style.cursor = 'pointer';
+    fechar.style.zIndex = '10000';
+    fechar.style.fontWeight = 'bold';
+
+    fundo.appendChild(img);
+    document.body.appendChild(fundo);
+    document.body.appendChild(fechar);
+
+    function fecharTudo() {
+        if (document.getElementById('lightbox')) {
+            document.getElementById('lightbox').remove();
+        }
+        fechar.remove();
+    }
+
+    fundo.onclick = fecharTudo;
+    fechar.onclick = fecharTudo;
+    document.onkeydown = function(e) {
+        if (e.key === 'Escape') { fecharTudo(); }
+    };
+}
+</script>
 {% endblock %}

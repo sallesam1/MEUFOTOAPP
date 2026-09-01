@@ -16,7 +16,6 @@ from models import db, User, Galeria, Photo, Selection, Watermark, PortfolioPhot
 from config import Config
 from watermark import apply_watermark, enhance_image, get_watermarked_bytes
 from social_sizes import resize_for_social, SOCIAL_SIZES
-from supabase_storage import upload_bytes, get_public_url, delete_file, download_bytes
 load_dotenv()
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -182,7 +181,7 @@ def galeria(gid):
         for f in files:
             if f and allowed_file(f.filename):
                 fn = secure_filename(f"{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{f.filename}")
-                upload_bytes(f.read(), fn, f.content_type or 'image/jpeg')
+                f.save(os.path.join(UPLOAD_FOLDER, fn))
                 db.session.add(Photo(galeria_id=g.id, filepath=fn, filename=f.filename, has_watermark=False))
         db.session.commit()
         flash(f'{len(files)} foto(s) enviada(s)!', 'success')
@@ -196,7 +195,7 @@ def delete_galeria(gid):
     g = Galeria.query.get_or_404(gid)
     if g.user_id != current_user.id: abort(403)
     for p in Photo.query.filter_by(galeria_id=g.id).all():
-        try: delete_file(p.filepath)
+        try: os.remove(os.path.join(UPLOAD_FOLDER, p.filepath))
         except: pass
         db.session.delete(p)
     Selection.query.filter_by(galeria_id=g.id).delete()
@@ -207,7 +206,7 @@ def delete_galeria(gid):
 def delete_photo(gid, pid):
     p = Photo.query.get_or_404(pid); g = Galeria.query.get_or_404(gid)
     if g.user_id != current_user.id: abort(403)
-    try: delete_file(p.filepath)
+    try: os.remove(os.path.join(UPLOAD_FOLDER, p.filepath))
     except: pass
     db.session.delete(p); db.session.commit()
     flash('Foto excluida.', 'success'); return redirect(url_for('galeria', gid=gid))
@@ -217,16 +216,7 @@ def enhance_photo(gid, pid):
     p = Photo.query.get_or_404(pid); g = Galeria.query.get_or_404(gid)
     if g.user_id != current_user.id: abort(403)
     try:
-        data = download_bytes(p.filepath)
-        tmp = os.path.join(UPLOAD_FOLDER, '_tmp_' + p.filepath)
-        with open(tmp, 'wb') as f:
-            f.write(data)
-        enhance_image(tmp)
-        with open(tmp, 'rb') as f:
-            upload_bytes(f.read(), p.filepath, 'image/jpeg')
-        try: os.remove(tmp)
-        except: pass
-        p.enhanced = True; db.session.commit()
+        enhance_image(os.path.join(UPLOAD_FOLDER, p.filepath)); p.enhanced = True; db.session.commit()
         flash('Imagem melhorada!', 'success')
     except: flash('Erro ao melhorar.', 'error')
     return redirect(url_for('galeria', gid=gid))
@@ -235,13 +225,7 @@ def enhance_photo(gid, pid):
 def resize_photo(gid, pid, platform):
     p = Photo.query.get_or_404(pid); g = Galeria.query.get_or_404(gid)
     if g.user_id != current_user.id: abort(403)
-    data = download_bytes(p.filepath)
-    tmp = os.path.join(UPLOAD_FOLDER, '_tmp_' + p.filepath)
-    with open(tmp, 'wb') as f:
-        f.write(data)
-    out = resize_for_social(tmp, platform)
-    try: os.remove(tmp)
-    except: pass
+    out = resize_for_social(os.path.join(UPLOAD_FOLDER, p.filepath), platform)
     if out: return send_file(out, as_attachment=True)
     flash('Plataforma invalida.', 'error'); return redirect(url_for('galeria', gid=gid))
 @app.route('/galeria/<int:gid>/photo/<int:pid>/rewatermark', methods=['POST'])
@@ -252,15 +236,7 @@ def rewatermark(gid, pid):
     wm = Watermark.query.filter_by(user_id=current_user.id).first()
     if wm:
         try:
-            data = download_bytes(p.filepath)
-            tmp = os.path.join(UPLOAD_FOLDER, '_tmp_' + p.filepath)
-            with open(tmp, 'wb') as f:
-                f.write(data)
-            apply_watermark(tmp, wm.text or 'MeuFotoApp', wm.color, wm.opacity, 'diagonal', wm.stroke, wm.logo_path)
-            with open(tmp, 'rb') as f:
-                upload_bytes(f.read(), p.filepath, 'image/jpeg')
-            try: os.remove(tmp)
-            except: pass
+            apply_watermark(os.path.join(UPLOAD_FOLDER, p.filepath), wm.text or 'MeuFotoApp', wm.color, wm.opacity, 'diagonal', wm.stroke, wm.logo_path)
             p.has_watermark = True; db.session.commit()
             flash('Marca dagua reaplicada!', 'success')
         except: flash('Erro ao aplicar marca dagua.', 'error')
@@ -269,7 +245,7 @@ def rewatermark(gid, pid):
 def serve_upload(filename):
     if filename == 'pending':
         abort(404)
-    return redirect(get_public_url(filename))
+    return send_from_directory(UPLOAD_FOLDER, filename)
 @app.route('/wm/<filename>')
 def serve_wm(filename):
     user_id = None
@@ -290,25 +266,21 @@ def serve_wm(filename):
     if user_id:
         wm = Watermark.query.filter_by(user_id=user_id).first()
         if wm:
-            try:
-                data = download_bytes(filename)
-                tmp = os.path.join(UPLOAD_FOLDER, '_tmp_' + filename)
-                with open(tmp, 'wb') as f:
-                    f.write(data)
-                img_bytes = get_watermarked_bytes(
-                    tmp,
-                    wm.text or 'MeuFotoApp',
-                    wm.color or '#ffffff',
-                    wm.opacity or 30,
-                    'diagonal',
-                    wm.stroke,
-                    wm.logo_path
-                )
-                try: os.remove(tmp)
-                except: pass
-                return send_file(img_bytes, mimetype='image/jpeg')
-            except Exception as e:
-                print('WM error: ' + str(e))
+            fp = os.path.join(UPLOAD_FOLDER, filename)
+            if os.path.exists(fp):
+                try:
+                    img_bytes = get_watermarked_bytes(
+                        fp,
+                        wm.text or 'MeuFotoApp',
+                        wm.color or '#ffffff',
+                        wm.opacity or 30,
+                        'diagonal',
+                        wm.stroke,
+                        wm.logo_path
+                    )
+                    return send_file(img_bytes, mimetype='image/jpeg')
+                except Exception as e:
+                    print('WM error: ' + str(e))
     if filename == 'pending':
         abort(404)
     return send_from_directory(UPLOAD_FOLDER, filename)
@@ -361,16 +333,8 @@ def download_selection(sid):
     mem = io.BytesIO()
     with zipfile.ZipFile(mem, 'w') as zf:
         for p in photos:
-            try:
-                data = download_bytes(p.filepath)
-                tmp = os.path.join(UPLOAD_FOLDER, '_tmp_' + p.filepath)
-                with open(tmp, 'wb') as f:
-                    f.write(data)
-                zf.write(tmp, p.filename or p.filepath)
-                try: os.remove(tmp)
-                except: pass
-            except Exception:
-                pass
+            fp = os.path.join(UPLOAD_FOLDER, p.filepath)
+            if os.path.exists(fp): zf.write(fp, p.filename or p.filepath)
     mem.seek(0)
     return send_file(mem, mimetype='application/zip', as_attachment=True, download_name=f'selecao_{sid}.zip')
 # ===== PORTFOLIO =====
@@ -382,10 +346,10 @@ def portfolio():
         bn = an = None
         if before and allowed_file(before.filename):
             bn = secure_filename(f"pf_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{before.filename}")
-            upload_bytes(before.read(), bn, before.content_type or 'image/jpeg')
+            before.save(os.path.join(UPLOAD_FOLDER, bn))
         if after and allowed_file(after.filename):
             an = secure_filename(f"pf_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{after.filename}")
-            upload_bytes(after.read(), an, after.content_type or 'image/jpeg')
+            after.save(os.path.join(UPLOAD_FOLDER, an))
         db.session.add(PortfolioPhoto(user_id=current_user.id, before_path=bn, after_path=an,
                      title=request.form.get('title', ''), share_token=tok)); db.session.commit()
         flash('Item adicionado!', 'success'); return redirect(url_for('portfolio'))
@@ -398,7 +362,7 @@ def delete_portfolio(iid):
     if item.user_id != current_user.id: abort(403)
     for p in [item.before_path, item.after_path]:
         if p:
-            try: delete_file(p)
+            try: os.remove(os.path.join(UPLOAD_FOLDER, p))
             except: pass
     db.session.delete(item); db.session.commit()
     flash('Item removido.', 'success'); return redirect(url_for('portfolio'))
@@ -474,7 +438,7 @@ def marca():
         logo = request.files.get('logo')
         if logo and allowed_file(logo.filename):
             ln = secure_filename(f"wm_logo_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{logo.filename}")
-            upload_bytes(logo.read(), ln, logo.content_type or 'image/png'); wm.logo_path = ln
+            logo.save(os.path.join(UPLOAD_FOLDER, ln)); wm.logo_path = ln
         db.session.commit(); flash('Marca dagua salva!', 'success'); return redirect(url_for('marca'))
     return render_template('marca.html', wm=Watermark.query.filter_by(user_id=current_user.id).first())
 # ===== PLANOS =====
@@ -555,10 +519,7 @@ def extrair_prompt(pid):
         return redirect(url_for('catalogo_poses'))
     try:
         from PIL import Image
-        data = download_bytes(pose.filepath)
-        fp = os.path.join(UPLOAD_FOLDER, '_tmp_' + pose.filepath)
-        with open(fp, 'wb') as f:
-            f.write(data)
+        fp = os.path.join(UPLOAD_FOLDER, pose.filepath)
         img = Image.open(fp)
         if max(img.size) > 1024:
             ratio = 1024.0 / max(img.size)
@@ -610,7 +571,7 @@ def admin_catalogo_add():
     f = request.files['photo']
     if f.filename:
         fn = secrets.token_urlsafe(8) + '_' + secure_filename(f.filename)
-        upload_bytes(f.read(), fn, f.content_type or 'image/jpeg')
+        f.save(os.path.join(UPLOAD_FOLDER, fn))
         pose = PosePhoto(filepath=fn, filename=f.filename, prompt=request.form.get('prompt', ''), profession=request.form.get('profession', ''), user_id=current_user.id)
         db.session.add(pose)
         db.session.commit()
@@ -623,7 +584,7 @@ def admin_catalogo_delete(pid):
         abort(403)
     pose = PosePhoto.query.get_or_404(pid)
     try:
-        delete_file(pose.filepath)
+        os.remove(os.path.join(UPLOAD_FOLDER, pose.filepath))
     except:
         pass
     db.session.delete(pose)
@@ -652,10 +613,7 @@ def admin_catalogo_extrair(pid):
         return redirect(url_for('admin_catalogo'))
     try:
         from PIL import Image
-        data = download_bytes(pose.filepath)
-        fp = os.path.join(UPLOAD_FOLDER, '_tmp_' + pose.filepath)
-        with open(fp, 'wb') as f:
-            f.write(data)
+        fp = os.path.join(UPLOAD_FOLDER, pose.filepath)
         img = Image.open(fp)
         if max(img.size) > 1024:
             ratio = 1024.0 / max(img.size)
@@ -805,7 +763,7 @@ def add_pose(category):
         if photo_file and photo_file.filename:
             ext = photo_file.filename.rsplit('.', 1)[-1].lower() if '.' in photo_file.filename else 'jpg'
             fn = f"pose_{secrets.token_hex(8)}.{ext}"
-            upload_bytes(photo_file.read(), fn, photo_file.content_type or 'image/jpeg')
+            photo_file.save(os.path.join(UPLOAD_FOLDER, fn))
             filepath = fn
         pose = PosePhoto(
             user_id=current_user.id,
@@ -873,7 +831,7 @@ def upload_pose_photo(category, pid):
     if photo_file and photo_file.filename:
         ext = photo_file.filename.rsplit('.', 1)[-1].lower() if '.' in photo_file.filename else 'jpg'
         fn = f"pose_{secrets.token_hex(8)}.{ext}"
-        upload_bytes(photo_file.read(), fn, photo_file.content_type or 'image/jpeg')
+        photo_file.save(os.path.join(UPLOAD_FOLDER, fn))
         pose.filepath = fn
         db.session.commit()
         flash('Foto anexada a pose com sucesso!', 'success')
