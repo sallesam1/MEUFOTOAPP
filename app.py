@@ -268,8 +268,17 @@ def serve_upload(filename):
     if filename == 'pending':
         abort(404)
     return redirect(get_public_url(filename))
+# ===== MARCA DAGUA COM CACHE (CORRECAO DA DEMORA) =====
 @app.route('/wm/<filename>')
 def serve_wm(filename):
+    # PASSO 1: Se a versao com marca dagua JA esta pronta (cache), serve direto (rapido)
+    cached = 'wm_' + filename
+    try:
+        data = download_bytes(cached)
+        return send_file(io.BytesIO(data), mimetype='image/jpeg')
+    except:
+        pass
+    # PASSO 2: Se nao esta pronta, processa UMA VEZ e salva no Supabase (cache)
     user_id = None
     photo = Photo.query.filter_by(filepath=filename).first()
     if photo:
@@ -304,6 +313,11 @@ def serve_wm(filename):
                 )
                 try: os.remove(tmp)
                 except: pass
+                raw = img_bytes.getvalue() if hasattr(img_bytes, 'getvalue') else img_bytes
+                try:
+                    upload_bytes(raw, cached, 'image/jpeg')
+                except Exception as e:
+                    print('Cache WM error: ' + str(e))
                 return send_file(img_bytes, mimetype='image/jpeg')
             except Exception as e:
                 print('WM error: ' + str(e))
