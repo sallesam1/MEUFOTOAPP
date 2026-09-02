@@ -21,13 +21,11 @@ load_dotenv()
 app = Flask(__name__)
 app.config.from_object(Config)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
-
 # ===== CORRECAO: usa o banco do Supabase (PostgreSQL) se DATABASE_URL existir =====
 _database_url = os.environ.get('DATABASE_URL')
 if _database_url:
     app.config['SQLALCHEMY_DATABASE_URI'] = _database_url
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_pre_ping': True}
-
 db.init_app(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
@@ -90,7 +88,7 @@ def send_notification_email(subject, body_html, recipient_email):
 # ===== AUTH =====
 @app.route('/')
 def index():
-    return redirect(url_for('dashboard')) if current_user.is_authenticated else redirect(url_for('login'))
+    return render_template('landing.html')
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
