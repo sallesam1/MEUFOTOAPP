@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MeuFotoApp — Fotos Profissionais com IA</title>
+<style>
+:root{--bg:#0a0e14;--card:#11161f;--card2:#0f141c;--border:#1f2a37;--text:#f0f4f8;--text-sec:#93a1b3;--grad:linear-gradient(135deg,#7c3aed,#db2777);--grad2:linear-gradient(135deg,#06b6d4,#7c3aed);--green:#22c55e;--gold:#fbbf24}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Segoe UI',Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+.container{max-width:1120px;margin:0 auto;padding:0 22px}
+a{text-decoration:none;color:inherit}
+img{user-select:none;-webkit-user-drag:none}
+
+.bg-orb{position:fixed;border-radius:50%;filter:blur(90px);opacity:.35;z-index:0;pointer-events:none;animation:float 14s ease-in-out infinite}
+.bg-orb.o1{width:420px;height:420px;background:#7c3aed;top:-120px;left:-80px}
+.bg-orb.o2{width:380px;height:380px;background:#db2777;top:40%;right:-120px;animation-delay:-5s}
+.bg-orb.o3{width:300px;height:300px;background:#06b6d4;bottom:-100px;left:30%;animation-delay:-9s}
+@keyframes float{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-40px) scale(1.08)}}
+
+/* HERO COMPACTO */
+.hero{position:relative;z-index:1;text-align:center;padding:26px 16px 18px}
+.badge{display:inline-flex;align-items:center;gap:8px;background:rgba(124,58,237,.14);border:1px solid #7c3aed55;color:#c4b5fd;padding:6px 14px;border-radius:999px;font-size:12px;margin-bottom:12px}
+.badge .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero h1{font-size:clamp(1.55rem,3.6vw,2.4rem);font-weight:800;line-height:1.14;margin-bottom:10px;letter-spacing:-.02em}
+.hero h1 .g1{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero h1 .g2{background:var(--grad2);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{font-size:clamp(.92rem,1.6vw,1.08rem);color:var(--text-sec);max-width:640px;margin:0 auto 18px}
+.btn{display:inline-block;background:var(--grad);color:#fff;font-weight:700;padding:13px 32px;border-radius:14px;font-size:1rem;transition:transform .25s,box-shadow .25s;box-shadow:0 10px 36px #7c3aed55;position:relative;overflow:hidden;cursor:pointer;border:none}
+.btn:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 16px 48px #db277766}
+.btn::after{content:"";position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);animation:shine 3.2s infinite}
+@keyframes shine{0%{left:-100%}60%,100%{left:100%}}
+.btn-wa{background:#25d366;box-shadow:0 10px 36px #25d36644}
+.btn-wa:hover{box-shadow:0 16px 48px #25d36666}
+.btn-lg{width:100%;max-width:460px;text-align:center;padding:16px 28px;font-size:1.06rem}
+
+section{position:relative;z-index:1;padding:52px 0}
+h2{font-size:clamp(1.4rem,2.8vw,2rem);text-align:center;font-weight:800;margin-bottom:12px;letter-spacing:-.01em}
+.sub{text-align:center;color:var(--text-sec);max-width:640px;margin:0 auto 32px}
+
+/* ===== CARROSSEL LADO A LADO ===== */
+.carousel{position:relative;max-width:680px;margin:0 auto}
+.car-viewport{overflow:hidden;border-radius:18px;border:1px solid var(--border);box-shadow:0 20px 60px rgba(0,0,0,.55);background:var(--card)}
+.car-track{display:flex;transition:transform .7s cubic-bezier(.4,0,.2,1)}
+.car-slide{min-width:100%;position:relative}
+.duo{position:relative;display:flex;height:420px;overflow:hidden}
+.duo .side{position:relative;width:50%;overflow:hidden}
+.duo .side img{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.duo .side .tag{position:absolute;top:12px;left:12px;padding:5px 12px;border-radius:8px;font-weight:700;font-size:12px;letter-spacing:.04em;z-index:4}
+.duo .side.antes .tag{background:rgba(10,14,20,.8);color:var(--text-sec)}
+.duo .side.depois .tag{background:rgba(124,58,237,.9);color:#fff;left:auto;right:12px}
+.duo .divider{position:absolute;top:0;left:50%;width:3px;height:100%;background:var(--grad);transform:translateX(-50%);z-index:5;box-shadow:0 0 16px #7c3aed88}
+.duo .arrow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:38px;height:38px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px;z-index:6;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+.car-info{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(10,14,20,.94));padding:30px 16px 14px;z-index:7;text-align:left}
+.car-info .nome{font-weight:800;font-size:1.05rem}
+.car-info .nicho{color:#c4b5fd;font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em}
+.car-arrow{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;background:rgba(17,22,31,.85);border:1px solid var(--border);color:#fff;font-size:20px;cursor:pointer;z-index:20;display:flex;align-items:center;justify-content:center;transition:.25s;line-height:1}
+.car-arrow:hover{background:var(--grad);border-color:transparent;transform:translateY(-50%) scale(1.08)}
+.car-arrow.prev{left:6px}
+.car-arrow.next{right:6px}
+.car-dots{display:flex;justify-content:center;gap:8px;margin-top:16px;flex-wrap:wrap}
+.car-dot{width:9px;height:9px;border-radius:50%;background:var(--border);cursor:pointer;transition:.3s;border:none;padding:0}
+.car-dot.active{background:var(--grad);width:24px;border-radius:6px}
+.car-hint{text-align:center;color:var(--text-sec);font-size:.8rem;margin-top:10px;opacity:.75}
+
+/* METRICAS */
+.metrics{position:relative;z-index:1;display:flex;justify-content:center;gap:40px;padding:26px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.metric{text-align:center}
+.metric strong{font-size:1.7rem;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;display:block;font-weight:800}
+.metric span{color:var(--text-sec);font-size:.88rem}
+
+/* ===== QUESTIONARIO DE CENARIOS ===== */
+.quiz{max-width:900px;margin:0 auto;background:var(--card);border:1px solid var(--border);border-radius:22px;padding:38px 30px;text-align:center}
+.quiz-step-label{display:inline-block;background:rgba(124,58,237,.14);border:1px solid #7c3aed55;color:#c4b5fd;font-size:.78rem;font-weight:700;padding:5px 14px;border-radius:999px;margin-bottom:14px;letter-spacing:.06em;text-transform:uppercase}
+.scene-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:24px 0}
+.scene-card{position:relative;border-radius:14px;overflow:hidden;border:2px solid var(--border);cursor:pointer;transition:.25s;aspect-ratio:3/4;background:var(--card2)}
+.scene-card img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}
+.scene-card:hover{border-color:#7c3aed;transform:translateY(-4px)}
+.scene-card:hover img{transform:scale(1.05)}
+.scene-card .sc-label{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(transparent,rgba(10,14,20,.96));padding:26px 10px 10px;text-align:left;font-weight:700;font-size:.82rem}
+.scene-card .sc-check{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;background:rgba(10,14,20,.75);border:2px solid #fff9;display:flex;align-items:center;justify-content:center;font-size:14px;color:transparent;transition:.2s}
+.scene-card.selected{border-color:var(--grad);box-shadow:0 0 30px #7c3aed55}
+.scene-card.selected .sc-check{background:var(--grad);border-color:#fff;color:#fff}
+.quiz-form{max-width:520px;margin:0 auto;text-align:left}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:.86rem;font-weight:600;color:var(--text-sec);margin-bottom:6px}
+.form-control{width:100%;padding:.78rem 1rem;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:.96rem;outline:none;transition:.2s}
+.form-control:focus{border-color:#7c3aed;box-shadow:0 0 0 3px #7c3aed33}
+select.form-control{appearance:none;background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2393a1b3' stroke-width='2'%3e%3cpath d='M6 9l6 6 6-6'/%3e%3c/svg%3e");background-repeat:no-repeat;background-position:right 14px center;cursor:pointer}
+.quiz-btn-wrap{text-align:center;margin-top:22px}
+.quiz-note{display:block;color:var(--text-sec);margin-top:16px;font-size:.84rem;max-width:520px;margin-left:auto;margin-right:auto}
+
+/* PASSOS */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:22px}
+.step{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:26px;text-align:center;transition:.3s}
+.step:hover{transform:translateY(-6px);border-color:#7c3aed}
+.step-num{width:44px;height:44px;border-radius:14px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.2rem;margin:0 auto 14px;box-shadow:0 8px 24px #7c3aed44}
+.step h3{font-size:1.1rem;margin-bottom:8px}
+.step p{color:var(--text-sec);font-size:.93rem}
+
+/* COMPARATIVO */
+.cmp{max-width:700px;margin:0 auto;overflow:hidden;border-radius:16px;border:1px solid var(--border)}
+.cmp table{width:100%;border-collapse:collapse}
+.cmp th,.cmp td{padding:14px 16px;text-align:center;font-size:.93rem}
+.cmp thead th{background:var(--card);color:var(--text-sec);font-weight:600}
+.cmp tbody tr:nth-child(even){background:var(--card2)}
+.cmp .you{background:rgba(124,58,237,.12)!important;font-weight:700;color:#fff}
+
+/* PACOTES */
+.pricing{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:24px;align-items:stretch}
+.plan{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:30px;display:flex;flex-direction:column;position:relative;transition:.3s}
+.plan:hover{transform:translateY(-6px)}
+.plan.featured{border:2px solid #7c3aed;box-shadow:0 0 50px #7c3aed33}
+.plan-tag{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--grad);padding:5px 16px;border-radius:999px;font-size:.78rem;font-weight:700;white-space:nowrap}
+.plan h3{font-size:1.2rem;margin-bottom:4px}
+.plan .price{font-size:2.4rem;font-weight:800;margin:10px 0 2px}
+.plan .per{color:var(--text-sec);font-size:.85rem;margin-bottom:8px}
+.plan ul{list-style:none;margin:16px 0 22px;flex:1}
+.plan li{padding:6px 0;color:var(--text-sec);font-size:.93rem}
+.plan li::before{content:"✓";color:var(--green);font-weight:700;margin-right:9px}
+.plan .btn{width:100%;text-align:center;padding:13px}
+
+/* EXTRAS (ADICIONAL FORA DOS PACOTES) */
+.extras{max-width:740px;margin:0 auto;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:30px;text-align:center}
+.extras .lead{font-size:1.12rem;margin-bottom:6px}
+.extras .lead b{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.extras .note{display:inline-block;background:rgba(124,58,237,.12);border:1px solid #7c3aed55;color:#c4b5fd;font-size:.82rem;padding:6px 14px;border-radius:999px;margin-bottom:16px}
+.extras-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-top:8px}
+.extra{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:18px;transition:.3s}
+.extra:hover{border-color:#7c3aed;transform:translateY(-4px)}
+.extra .n{font-size:1.4rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.extra .p{font-size:1.1rem;font-weight:700;margin-top:6px}
+.extra .pp{color:var(--text-sec);font-size:.8rem}
+.extra.best{border:2px solid var(--gold);background:rgba(251,191,36,.06)}
+.extra.best .n,.extra.best .p{background:linear-gradient(135deg,#fbbf24,#f59e0b);-webkit-background-clip:text;background-clip:text;color:transparent}
+.extra .tag{display:inline-block;background:rgba(251,191,36,.15);color:var(--gold);font-size:.7rem;font-weight:700;padding:3px 10px;border-radius:999px;margin-bottom:8px}
+.extra .desc{color:var(--text-sec);font-size:.78rem;margin-top:8px}
+
+/* SELOS */
+.selos{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;max-width:900px;margin:0 auto}
+.selo{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;text-align:center}
+.selo .ic{font-size:28px;margin-bottom:10px}
+.selo h4{font-size:.98rem;margin-bottom:6px}
+.selo p{color:var(--text-sec);font-size:.84rem}
+
+/* DEPOIMENTOS */
+.deps{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px}
+.dep{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px}
+.dep .stars{color:var(--gold);margin-bottom:10px;letter-spacing:2px}
+.dep p{font-style:italic;font-size:.93rem;margin-bottom:12px}
+.dep .who{color:var(--text-sec);font-size:.84rem}
+.dep .who b{color:var(--text)}
+
+/* FAQ */
+.faq{max-width:680px;margin:0 auto}
+details{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 20px;margin-bottom:10px;transition:.3s}
+details[open]{border-color:#7c3aed}
+summary{cursor:pointer;font-weight:600;font-size:.98rem;list-style:none;display:flex;justify-content:space-between;align-items:center}
+summary::after{content:"+";font-size:1.3rem;color:var(--text-sec);transition:.3s}
+details[open] summary::after{content:"−";color:#7c3aed}
+details p{color:var(--text-sec);margin-top:12px;font-size:.92rem}
+
+/* CTA FINAL */
+.cta-final{position:relative;z-index:1;text-align:center;padding:70px 20px}
+.cta-final h2{font-size:clamp(1.6rem,3.6vw,2.4rem)}
+footer{position:relative;z-index:1;text-align:center;padding:28px;border-top:1px solid var(--border);color:var(--text-sec);font-size:.84rem}
+@media(max-width:900px){.carousel{max-width:600px}}
+@media(max-width:768px){.metrics{gap:20px}.duo{height:380px}.carousel{max-width:100%}.quiz{padding:28px 18px}}
+@media(max-width:480px){.duo{height:340px}.hero{padding:18px 12px 14px}.scene-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<div class="bg-orb o1"></div><div class="bg-orb o2"></div><div class="bg-orb o3"></div>
+
+<!-- HERO (PNL: futuro pacing) -->
+<div class="hero">
+  <div class="container">
+    <span class="badge"><span class="dot"></span> +1.200 ensaios entregues · 4.9★</span>
+    <h1>Sua melhor versão, em fotos de estúdio. <span class="g1">Sem sair de casa.</span></h1>
+    <p>Imagine se ver em fotos que parecem de revista — iluminação perfeita, pose impecável, você no seu auge. <strong>Uma selfie sua é tudo que precisamos pra começar.</strong></p>
+    <a href="https://wa.me/5524993158755?text=Ol%C3%A1!%20Vim%20pelo%20site%20de%20fotos%20profissionais%20e%20quero%20ver%20uma%20amostra%20do%20meu%20potencial%20em%20fotos%20de%20est%C3%BAdio.%20Vou%20anexar%20minha%20selfie%20aqui%20%F0%9F%91%87" class="btn btn-wa" target="_blank">Quero minha amostra exclusiva</a>
+  </div>
+</div>
+
+<!-- CARROSSEL (10 PARES ANTES/DEPOIS) -->
+<section id="transformacao" style="padding-top:8px">
+  <div class="container">
+    <div class="carousel" id="carousel">
+      <div class="car-viewport">
+        <div class="car-track" id="carTrack">
+
+          <div class="car-slide">
+            <div class="duo">
+              <div class="side antes"><span class="tag">ANTES</span><img src="/static/antes-depois/advogada-antes.png" alt="Antes - Advogada"></div>
+              <div class="side depois"><span class="tag">DEPOIS · IA</span><img src="/static/antes-depois/advogada-depois.png" alt="Depois - Advogada"></div>
+              <div class="divider"></div><div class="arrow">&#8646;</div>
+              <div class="car-info"><div class="nicho">Profissional · Advocacia</div><div class="nome">Advogada, 32 anos</div></div>
+            </div>
+          </div>
+
+          <div class="car-slide">
+            <div class="duo">
+              <div class="side antes"><span class="tag">ANTES</span><img src="/static/antes-depois/medica-antes.png" alt="Antes - Médica"></div>
+              <div class="side depois"><span class="tag">DEPOIS · IA</span><img src="/static/antes-depois/medica-depois.png" alt="Depois - Médica"></div>
+              <div class="divider"></div><div class="arrow">&#8646;</div>
+              <div class="car-info"><div class="nicho">Profissional · Saúde</div><div class="nome">Médica, 35 anos</div></div>
+            </div>
+          </div>
+
+          <div class="car-slide">
+            <div class="duo">
+              <div class="side antes"><span class="tag">ANTES</span><img src="/static/antes-depois/advogado-antes.png" alt="Antes - Advogado"></div>
+              <div class="side depois"><span class="tag">DEPOIS · IA</span><img src="/static/antes-depois/advogado-depois.png" alt="Depois - Advogado"></div>
+              <div class="divider"></div><div class="arrow">&#8646;</div>
+              <div class="car-info"><div class="nicho">Profissional · Advocacia</div><div class="nome">Advogado, 40 anos</div></div>
+            </div>
+          </div>
+
+          <div class="car-slide">
+            <div class="duo">
+              <div class="side antes"><span class="tag">ANTES</span><img src="/static/antes-depois/empreendedor-antes.png" alt="Antes - Empreendedor"></div>
+              <div class="side depois"><span class="tag">DEPOIS · IA</span><img src="/static/antes-depois/empreendedor-depois.png" alt="Depois - Empreendedor"></div>
+              <div class="divider"></div><div class="arrow">&#8646;</div>
+              <div class="car-info"><div class="nicho">Profissional · Empreendedorismo</div><div class="nome">Empreendedor, 31 anos</div></div>
+            </div>
+          </div>
+
+          <div class="car-slide">
+            <div class="duo">
+              <div class="side antes"><span class="tag">ANTES</span><img src="/static/antes-depois/60-antes.png" alt="Antes - Elegância 60+"></div>
+              <div class="side depois"><span class="tag">DEPOIS · IA</span><img src="/static/antes-depois/60-depois.png" alt="Depois - Elegância 60+"></div>
+              <div class="divider"></div><div class="arrow">&#8646;</div>
+              <div class="car-info"><div class="nicho">Elegância · 60+</div><div class="nome">Retrato elegante</div></div>
+            </div>
+          </div>
+
+          <div class="car-slide">
+            <div class="duo">
+              <div class="side antes"><span class="tag">ANTES</span><img src="/static/antes-depois/newborn-antes.png" alt="Antes - Newborn"></div>
+              <div class="side depois"><span class="tag">DEPOIS · IA</span><img src="/static/antes-depois/newborn-depois.png" alt="Depois - Newborn"></div>
+              <div class="divider"></div><div class="arrow">&#8646;</div>
+              <div class="car-info"><div class="nicho">Newborn · Bebê</div><div class="nome">Ensaio newborn mágico</div></div>
+            </div>
+          </div>
+
+          <div class="car-slide">
+            <div class="duo">
+              <div class="side antes"><span class="tag">ANTES</span><img src="/static/antes-depois/aniversario-antes.png" alt="Antes - Aniversário"></div>
+              <div class="side depois"><span class="tag">DEPOIS · IA</span><img src="/static/antes-depois/aniversario-depois.png" alt="Depois - Aniversário"></div>
+              <div class="divider"></div><div class="arrow">&#8646;</div>
+              <div class="car-info"><div class="nicho">Aniversário · Celebração</div><div class="nome">Festa com estilo</div></div>
+            </div>
+          </div>
+
+          <div class="car-slide">
+            <div class="duo">
+              <div class="side antes"><span class="tag">ANTES</span><img src="/static/antes-depois/viagens-antes.png" alt="Antes - Viagens"></div>
+              <div class="side depois"><span class="tag">DEPOIS · IA</span><img src="/static/antes-depois/viagens-depois.png" alt="Depois - Viagens"></div>
+              <div class="divider"></div><div class="arrow">&#8646;</div>
+              <div class="car-info"><div class="nicho">Viagem · Lifestyle</div><div class="nome">Praia paradisíaca</div></div>
+            </div>
+          </div>
+
+          <div class="car-slide">
+            <div class="duo">
+              <div class="side antes"><span class="tag">ANTES</span><img src="/static/antes-depois/formatura-antes.png" alt="Antes - Formatura"></div>
+              <div class="side depois"><span class="tag">DEPOIS · IA</span><img src="/static/antes-depois/formatura-depois.png" alt="Depois - Formatura"></div>
+              <div class="divider"></div><div class="arrow">&#8646;</div>
+              <div class="car-info"><div class="nicho">Formatura · Conquista</div><div class="nome">Beca e canudo</div></div>
+            </div>
+          </div>
+
+          <div class="car-slide">
+            <div class="duo">
+              <div class="side antes"><span class="tag">ANTES</span><img src="/static/antes-depois/melhor-versao-antes.png" alt="Antes - Minha Melhor Versão"></div>
+              <div class="side depois"><span class="tag">DEPOIS · IA</span><img src="/static/antes-depois/melhor-versao-depois.png" alt="Depois - Minha Melhor Versão"></div>
+              <div class="divider"></div><div class="arrow">&#8646;</div>
+              <div class="car-info"><div class="nicho">Melhor Versão · Glamour</div><div class="nome">Sua melhor versão</div></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <button class="car-arrow prev" id="carPrev">&#8249;</button>
+      <button class="car-arrow next" id="carNext">&#8250;</button>
+      <div class="car-dots" id="carDots"></div>
+    </div>
+    <p class="car-hint">Passe o mouse para pausar &middot; setas para navegar</p>
+  </div>
+</section>
+
+<!-- METRICAS -->
+<div class="metrics">
+  <div class="metric"><strong>+1.200</strong><span>ensaios entregues</span></div>
+  <div class="metric"><strong>4K</strong><span>qualidade de estúdio</span></div>
+  <div class="metric"><strong>10+</strong><span>estilos e nichos</span></div>
+  <div class="metric"><strong>24h</strong><span>entrega rápida</span></div>
+</div>
+
+<!-- QUESTIONARIO DE CENARIOS (10 CENÁRIOS) -->
+<section id="amostra">
+  <div class="container">
+    <h2>Veja você mesmo(a) no cenário dos seus sonhos</h2>
+    <p class="sub">Escolha onde quer estar, conte quem você é e receba uma <strong>amostra exclusiva</strong> do seu potencial — com marca d'água. Sem compromisso, sem pagamento antecipado.</p>
+    <div class="quiz">
+      <span class="quiz-step-label">Passo 1 · Escolha seu cenário</span>
+      <div class="scene-grid" id="sceneGrid">
+
+        <div class="scene-card" data-cenario="Advogada" data-nome="Fotos profissionais para advogada">
+          <img src="/static/antes-depois/advogada-depois.png" alt="Cenário Advogada">
+          <span class="sc-check">✓</span>
+          <span class="sc-label">💼 Advogada</span>
+        </div>
+
+        <div class="scene-card" data-cenario="Médica" data-nome="Fotos profissionais para médica">
+          <img src="/static/antes-depois/medica-depois.png" alt="Cenário Médica">
+          <span class="sc-check">✓</span>
+          <span class="sc-label">🩺 Médica</span>
+        </div>
+
+        <div class="scene-card" data-cenario="Advogado" data-nome="Fotos profissionais para advogado">
+          <img src="/static/antes-depois/advogado-depois.png" alt="Cenário Advogado">
+          <span class="sc-check">✓</span>
+          <span class="sc-label">⚖️ Advogado</span>
+        </div>
+
+        <div class="scene-card" data-cenario="Empreendedor" data-nome="Fotos profissionais para empreendedor">
+          <img src="/static/antes-depois/empreendedor-depois.png" alt="Cenário Empreendedor">
+          <span class="sc-check">✓</span>
+          <span class="sc-label">🚀 Empreendedor</span>
+        </div>
+
+        <div class="scene-card" data-cenario="Elegância 60+" data-nome="Retrato elegante 60+">
+          <img src="/static/antes-depois/60-depois.png" alt="Cenário Elegância 60+">
+          <span class="sc-check">✓</span>
+          <span class="sc-label">🌹 Elegância 60+</span>
+        </div>
+
+        <div class="scene-card" data-cenario="Newborn" data-nome="Ensaio newborn do bebê">
+          <img src="/static/antes-depois/newborn-depois.png" alt="Cenário Newborn">
+          <span class="sc-check">✓</span>
+          <span class="sc-label">👶 Newborn</span>
+        </div>
+
+        <div class="scene-card" data-cenario="Aniversário" data-nome="Ensaio de aniversário">
+          <img src="/static/antes-depois/aniversario-depois.png" alt="Cenário Aniversário">
+          <span class="sc-check">✓</span>
+          <span class="sc-label">🎂 Aniversário</span>
+        </div>
+
+        <div class="scene-card" data-cenario="Viagens" data-nome="Fotos em lugares incríveis do mundo">
+          <img src="/static/antes-depois/viagens-depois.png" alt="Cenário Viagens">
+          <span class="sc-check">✓</span>
+          <span class="sc-label">✈️ Viagens</span>
+        </div>
+
+        <div class="scene-card" data-cenario="Formatura" data-nome="Ensaio de formatura">
+          <img src="/static/antes-depois/formatura-depois.png" alt="Cenário Formatura">
+          <span class="sc-check">✓</span>
+          <span class="sc-label">🎓 Formatura</span>
+        </div>
+
+        <div class="scene-card" data-cenario="Minha melhor versão" data-nome="Glamour / melhor versão">
+          <img src="/static/antes-depois/melhor-versao-depois.png" alt="Cenário Minha Melhor Versão">
+          <span class="sc-check">✓</span>
+          <span class="sc-label">✨ Minha melhor versão</span>
+        </div>
+
+      </div>
+
+      <span class="quiz-step-label" style="margin-top:10px">Passo 2 · Conte quem você é</span>
+      <div class="quiz-form">
+        <div class="form-group">
+          <label for="qNome">Seu nome</label>
+          <input type="text" id="qNome" class="form-control" placeholder="Ex: Maria Silva">
+        </div>
+        <div class="form-group">
+          <label for="qProf">Sua profissão</label>
+          <input type="text" id="qProf" class="form-control" placeholder="Ex: Advogada">
+        </div>
+        <div class="form-group">
+          <label for="qObj">Para que você quer o ensaio?</label>
+          <select id="qObj" class="form-control">
+            <option value="Perfil profissional / LinkedIn">Perfil profissional / LinkedIn</option>
+            <option value="Redes sociais">Redes sociais</option>
+            <option value="Momento especial (aniversário, formatura...)">Momento especial (aniversário, formatura...)</option>
+            <option value="Registro de viagem / lifestyle">Registro de viagem / lifestyle</option>
+            <option value="Presente para alguém">Presente para alguém</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="quiz-btn-wrap">
+        <button class="btn btn-wa btn-lg" id="quizBtn">Quero ver minha amostra exclusiva</button>
+      </div>
+      <span class="quiz-note">🔒 Sua foto fica só entre você e nós. A amostra é a sua garantia de qualidade — você só investe quando ver o resultado com os próprios olhos.</span>
+    </div>
+  </div>
+</section>
+
+<!-- COMO FUNCIONA -->
+<section id="como-funciona">
+  <div class="container">
+    <h2>Simples, rápido e sem atrito</h2>
+    <p class="sub">Você vê o resultado antes de decidir. É assim que a confiança se constrói.</p>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><h3>Envie sua foto</h3><p>Uma selfie do celular já basta. A matéria-prima da sua transformação está a um clique.</p></div>
+      <div class="step"><div class="step-num">2</div><h3>Receba sua amostra</h3><p>Você recebe uma amostra exclusiva com marca d'água. Sem compromisso, sem pagamento antecipado.</p></div>
+      <div class="step"><div class="step-num">3</div><h3>Aprove e receba</h3><p>Sentiu aquele "uau"? Escolha o pacote, pague via PIX e receba suas fotos em alta resolução, sem marca d'água.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARATIVO -->
+<section>
+  <div class="container">
+    <h2>Por que não fazer um ensaio tradicional?</h2>
+    <p class="sub">Compare e veja quanto você economiza.</p>
+    <div class="cmp">
+      <table>
+        <thead><tr><th></th><th>Estúdio tradicional</th><th class="you">MeuFotoApp</th></tr></thead>
+        <tbody>
+          <tr><td>Preço</td><td>R$ 800 – 3.000</td><td class="you">a partir de R$ 49</td></tr>
+          <tr><td>Agendamento</td><td>Dias de espera</td><td class="you">Hoje, no WhatsApp</td></tr>
+          <tr><td>Deslocamento</td><td>Sim</td><td class="you">Nenhum</td></tr>
+          <tr><td>Fotos em 4K</td><td>Depende</td><td class="you">✓</td></tr>
+          <tr><td>Garantia</td><td>Raramente</td><td class="you">✓ 7 dias</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- PACOTES -->
+<section id="planos">
+  <div class="container">
+    <h2>Escolha seu pacote</h2>
+    <p class="sub">Pagamento único via PIX. Sem mensalidade, sem surpresa.</p>
+    <div class="pricing">
+      <div class="plan">
+        <h3>Starter</h3>
+        <div class="price">R$ 49</div>
+        <div class="per">5 fotos · 1 estilo</div>
+        <ul>
+          <li>5 fotos em alta resolução</li>
+          <li>1 estilo de sua escolha</li>
+          <li>Amostra com marca d'água</li>
+          <li>1 rodada de refação</li>
+          <li>Entrega em até 24h</li>
+        </ul>
+        <a href="https://wa.me/5524993158755?text=Ol%C3%A1!%20Vim%20pelo%20site%20de%20fotos%20profissionais%20e%20quero%20o%20pacote%20Starter%20(5%20fotos%20%2F%20R%24%2049)" class="btn btn-wa" target="_blank">Quero o Starter</a>
+      </div>
+      <div class="plan featured">
+        <span class="plan-tag">⭐ MAIS ESCOLHIDO</span>
+        <h3>Pro</h3>
+        <div class="price">R$ 99</div>
+        <div class="per">10 fotos · 2 estilos</div>
+        <ul>
+          <li>10 fotos em alta resolução</li>
+          <li>2 estilos diferentes</li>
+          <li>Amostra + 2 rodadas de refação</li>
+          <li>Entrega em até 12h</li>
+          <li>Suporte prioritário</li>
+        </ul>
+        <a href="https://wa.me/5524993158755?text=Ol%C3%A1!%20Vim%20pelo%20site%20de%20fotos%20profissionais%20e%20quero%20o%20pacote%20Pro%20(10%20fotos%20%2F%20R%24%2099)" class="btn btn-wa" target="_blank">Quero o Pro</a>
+      </div>
+      <div class="plan">
+        <h3>Premium</h3>
+        <div class="price">R$ 149</div>
+        <div class="per">15 fotos · 3 estilos</div>
+        <ul>
+          <li>15 fotos em alta resolução</li>
+          <li>3 estilos diferentes</li>
+          <li>Amostra + 3 rodadas de refação</li>
+          <li>Entrega em até 6h</li>
+          <li>Suporte VIP</li>
+        </ul>
+        <a href="https://wa.me/5524993158755?text=Ol%C3%A1!%20Vim%20pelo%20site%20de%20fotos%20profissionais%20e%20quero%20o%20pacote%20Premium%20(15%20fotos%20%2F%20R%24%20149)" class="btn btn-wa" target="_blank">Quero o Premium</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EXTRAS (ADICIONAL FORA DOS PACOTES) -->
+<section>
+  <div class="container">
+    <div class="extras">
+      <p class="lead">Quer mais fotos? <b>Adicione extras ao seu pacote</b></p>
+      <span class="note">➕ Complemento opcional — não substitui o pacote escolhido</span>
+      <p class="sub" style="margin-bottom:0">Escolha um pacote acima e, se quiser, adicione fotos extras. Elas são um <strong>plus</strong> por fora do pacote.</p>
+      <div class="extras-grid">
+        <div class="extra"><div class="n">+5</div><div class="p">R$ 34,90</div><div class="pp">R$ 6,98/foto</div><div class="desc">Adiciona 5 fotos extras ao seu pacote</div></div>
+        <div class="extra best"><span class="tag">MELHOR CUSTO-BENEFÍCIO</span><div class="n">+10</div><div class="p">R$ 59,90</div><div class="pp">R$ 5,99/foto</div><div class="desc">Adiciona 10 fotos extras ao seu pacote</div></div>
+        <div class="extra"><div class="n">TODAS</div><div class="p">R$ 89,90</div><div class="pp">Complemento de qualquer pacote</div><div class="desc">Recebe o pacote escolhido + todas as fotos extras geradas</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SELOS -->
+<section>
+  <div class="container">
+    <h2>Você está em boas mãos</h2>
+    <div class="selos">
+      <div class="selo"><div class="ic">🛡️</div><h4>Garantia de 7 dias</h4><p>Não gostou? Devolvemos 100% do seu dinheiro.</p></div>
+      <div class="selo"><div class="ic">👤</div><h4>Curadoria humana</h4><p>Cada ensaio é revisado por especialistas.</p></div>
+      <div class="selo"><div class="ic">📱</div><h4>Entrega no WhatsApp</h4><p>Receba suas fotos direto no seu WhatsApp.</p></div>
+      <div class="selo"><div class="ic">🔒</div><h4>Privacidade LGPD</h4><p>Suas fotos são apagadas após a entrega.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- DEPOIMENTOS (10 PROVAS SOCIAIS COM PNL) -->
+<section>
+  <div class="container">
+    <h2>Quem usou, recomenda</h2>
+    <p class="sub">Depoimentos reais de quem transformou suas fotos — e sua imagem.</p>
+    <div class="deps">
+      <div class="dep"><div class="stars">★★★★★</div><p>"Eu achava que foto profissional era luxo pra quem já tinha 'nome'. Enviei uma selfie e, em 24h, estava com um perfil que me fez fechar 3 clientes novos na semana seguinte. Minha autoconfiança também mudou."</p><div class="who"><b>Dra. Juliana</b> · Advogada</div></div>
+      <div class="dep"><div class="stars">★★★★★</div><p>"O que me convenceu foi ver a amostra antes de pagar. Quando vi meu rosto naquele jaleco, com aquela luz de estúdio, pensei: 'é isso que quero que meus pacientes vejam'. Valia 10x o que paguei."</p><div class="who"><b>Dr. Carlos</b> · Médico</div></div>
+      <div class="dep"><div class="stars">★★★★★</div><p>"Tive medo de ficar artificial. O resultado foi tão natural que minha mãe não acreditou que não era um estúdio de verdade. A prévia com marca d'água me deu segurança total."</p><div class="who"><b>Marina</b> · Psicóloga</div></div>
+      <div class="dep"><div class="stars">★★★★★</div><p>"Eu estava perdendo oportunidades por uma foto amadora. Em uma semana, meu perfil profissional virou meu melhor cartão de visita. Clientes chegam dizendo que já me 'conheciam' pela foto."</p><div class="who"><b>Ricardo</b> · Empreendedor</div></div>
+      <div class="dep"><div class="stars">★★★★★</div><p>"Nunca me achei fotogênica. Minha filha me presenteou com o ensaio e eu chorei quando vi o resultado. Me senti bonita de novo. Foi o melhor presente que já recebi."</p><div class="who"><b>Dona Lúcia</b> · 60+</div></div>
+      <div class="dep"><div class="stars">★★★★★</div><p>"Minha formatura merecia mais que uma selfie. As fotos chegaram no mesmo dia e eu postei tudo. Recebi mais elogios do que em qualquer foto da minha vida."</p><div class="who"><b>Beatriz</b> · Recém-formada</div></div>
+      <div class="dep"><div class="stars">★★★★★</div><p>"Registrar meu bebê recém-nascido foi o momento mais importante. Cuidaram de cada detalhe e o resultado é mágico. São fotos que minha filha vai ver quando crescer."</p><div class="who"><b>Camila</b> · Mãe</div></div>
+      <div class="dep"><div class="stars">★★★★★</div><p>"Queria fotos que parecessem de revista, sem pagar fortuna. Escolhi o cenário de viagem, enviei uma selfie e me vi numa praia paradisíaca. Parece que eu realmente estive lá."</p><div class="who"><b>Fernanda</b> · Viagens</div></div>
+      <div class="dep"><div class="stars">★★★★★</div><p>"Como executiva, minha imagem fala antes de mim. Essas fotos transmitem exatamente a autoridade e a elegância que eu queria passar. Foi o melhor investimento na minha marca pessoal."</p><div class="who"><b>Patrícia</b> · Executiva</div></div>
+      <div class="dep"><div class="stars">★★★★★</div><p>"Vendi mais por causa de uma foto? Sim. Depois que troquei meu perfil, a taxa de resposta dos clientes disparou. As pessoas confiam em quem parece profissional — e eu sou."</p><div class="who"><b>André</b> · Vendas</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section>
+  <div class="container">
+    <h2>Perguntas frequentes</h2>
+    <div class="faq">
+      <details><summary>Como funciona a geração de fotos?</summary><p>Nossa IA analisa sua selfie e recria seu rosto em cenários e estilos profissionais com qualidade de estúdio, preservando seus traços.</p></details>
+      <details><summary>Preciso ter fotos profissionais?</summary><p>Não. Uma selfie simples de celular já é suficiente — a IA cuida da iluminação, pose e cenário.</p></details>
+      <details><summary>E se eu não gostar do resultado?</summary><p>Você vê a amostra com marca d'água antes de pagar e ainda tem rodadas de refação. E se mesmo assim não gostar, garantia de 7 dias.</p></details>
+      <details><summary>Como pago?</summary><p>Direto no WhatsApp, via PIX. Sem cadastro, sem gateway. Se preferir cartão, envio o link da maquininha.</p></details>
+      <details><summary>Como recebo as fotos?</summary><p>Assim que aprovado e pago, as fotos em alta resolução chegam no seu WhatsApp.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<div class="cta-final">
+  <div class="container">
+    <h2>A melhor versão de você está a uma selfie de distância</h2>
+    <p class="sub">Poucas vagas por dia para garantir qualidade de estúdio. Veja sua amostra hoje — e decida com os olhos, não com a dúvida.</p>
+    <a href="https://wa.me/5524993158755?text=Ol%C3%A1!%20Vim%20pelo%20site%20de%20fotos%20profissionais%20e%20quero%20ver%20uma%20amostra%20do%20meu%20potencial%20em%20fotos%20de%20est%C3%BAdio.%20Vou%20anexar%20minha%20selfie%20aqui%20%F0%9F%91%87" class="btn btn-wa" target="_blank">Ver minha amostra exclusiva</a>
+  </div>
+</div>
+
+<footer>
+  MeuFotoApp · Termos de Uso · Privacidade · Contato<br>
+  <span style="opacity:.6">© 2026 MeuFotoApp — Fotos profissionais com IA</span>
+</footer>
+
+<script>
+/* CARROSSEL - AUTOPLAY */
+(function(){
+  var track=document.getElementById('carTrack');
+  if(!track)return;
+  var slides=track.children;
+  var dotsWrap=document.getElementById('carDots');
+  var idx=0,total=slides.length,timer=null;
+  var INTERVAL=4000;
+
+  for(var i=0;i<total;i++){
+    var d=document.createElement('button');
+    d.className='car-dot'+(i===0?' active':'');
+    d.setAttribute('aria-label','Foto '+(i+1));
+    d.onclick=(function(n){return function(){go(n);restart();};})(i);
+    dotsWrap.appendChild(d);
+  }
+  var dots=dotsWrap.children;
+
+  function go(n){
+    idx=(n+total)%total;
+    track.style.transform='translateX(-'+(idx*100)+'%)';
+    for(var j=0;j<total;j++){
+      if(dots[j])dots[j].className='car-dot'+(j===idx?' active':'');
+    }
+  }
+  function next(){go(idx+1);}
+  function prev(){go(idx-1);}
+  function start(){if(!timer){timer=setInterval(next,INTERVAL);}}
+  function stopT(){if(timer){clearInterval(timer);timer=null;}}
+  function restart(){stopT();start();}
+
+  document.getElementById('carNext').onclick=function(){next();restart();};
+  document.getElementById('carPrev').onclick=function(){prev();restart();};
+
+  var car=document.getElementById('carousel');
+  car.addEventListener('mouseenter',stopT);
+  car.addEventListener('mouseleave',start);
+
+  var sx=0;
+  track.addEventListener('touchstart',function(e){stopT();sx=e.touches[0].clientX;},{passive:true});
+  track.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].clientX-sx;
+    if(Math.abs(dx)>50){if(dx<0){next();}else{prev();}}
+    start();
+  },{passive:true});
+
+  start();
+})();
+
+/* QUESTIONARIO DE CENARIOS + MENSAGEM PERSONALIZADA */
+(function(){
+  var cards=document.querySelectorAll('.scene-card');
+  var selecionado=null;
+
+  cards.forEach(function(card){
+    card.addEventListener('click',function(){
+      cards.forEach(function(c){c.classList.remove('selected');});
+      card.classList.add('selected');
+      selecionado=card.getAttribute('data-cenario');
+    });
+  });
+
+  document.getElementById('quizBtn').addEventListener('click',function(){
+    var nome=document.getElementById('qNome').value.trim();
+    var prof=document.getElementById('qProf').value.trim();
+    var obj=document.getElementById('qObj').value;
+
+    if(!selecionado){alert('Escolha um cenário primeiro 😉');return;}
+    if(!nome){alert('Escreva seu nome 😉');return;}
+    if(!prof){alert('Escreva sua profissão 😉');return;}
+
+    var msg='Olá! Me chamo '+nome+', sou '+prof+'. '+
+            'Vim pelo site de fotos profissionais e escolhi o cenário "'+selecionado+'". '+
+            'Objetivo: '+obj+'. '+
+            'Vou anexar minha selfie aqui no chat 👇';
+    window.open('https://wa.me/5524993158755?text='+encodeURIComponent(msg),'_blank');
+  });
+})();
+
+/* BLOQUEIO DE CLIQUE DIREITO NAS IMAGENS */
+(function(){
+  var imgs=document.querySelectorAll('img');
+  for(var i=0;i<imgs.length;i++){
+    imgs[i].addEventListener('contextmenu',function(e){e.preventDefault();});
+  }
+})();
+</script>
+</body>
+</html>
