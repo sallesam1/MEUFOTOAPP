@@ -11,11 +11,11 @@ n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '28964574943206817');
+fbq('init', '2519423655209606');
 fbq('track', 'PageView');
 </script>
 <noscript><img height="1" width="1" style="display:none"
-src="https://www.facebook.com/tr?id=28964574943206817&ev=PageView&noscript=1"
+src="https://www.facebook.com/tr?id=2519423655209606&ev=PageView&noscript=1"
 /></noscript>
 <!-- End Meta Pixel Code -->
 <meta charset="UTF-8">
@@ -623,6 +623,15 @@ footer{position:relative;z-index:1;text-align:center;padding:28px;border-top:1px
   }
   btn.addEventListener('click',function(e){e.stopPropagation();play();});
   poster.addEventListener('click',play);
+})();
+/* META PIXEL - EVENTO CONTACT EM TODO CLIQUE DE WHATSAPP */
+(function(){
+  var waLinks=document.querySelectorAll('a.btn-wa');
+  waLinks.forEach(function(link){
+    link.addEventListener('click',function(){
+      if(typeof fbq==='function'){fbq('track','Contact');}
+    });
+  });
 })();
 </script>
 </body>
