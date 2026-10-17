@@ -9,3 +9,4 @@ requests
 gunicorn
 psycopg2-binary
 supabase==2.4.3
+psycopg[binary]
